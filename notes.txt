@@ -1,0 +1,17 @@
+To develop and debug our grammar, it is useful to visualize the parse trees it builds.
+
+Antlr4 provides grun, a java tool able to provide this visualization.
+
+Since grun is written in java, it requires the java classes for our grammar. Our Makefile creates only C++ classes, so we will need to compile the java version:
+
+antlr4 myGrammar.g4
+javac *.java
+Once this is done, we can run grun to obtain the tree for a given input:
+
+To display the tree in parenthesized format:
+
+grun myGrammar myInitialSymbol -tree inputfile
+To display the tree in graphical format:
+
+grun myGrammar myInitialSymbol -gui inputfile
+In both above commands inputfile may be ommited and typed in stdin ending with ctl-D 
