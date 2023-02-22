@@ -12,9 +12,11 @@
 class  CalcParser : public antlr4::Parser {
 public:
   enum {
-    T__0 = 1, LPAR = 2, RPAR = 3, MUL = 4, ADD = 5, SUB = 6, MOD = 7, DIV = 8, 
-    ABS = 9, MIN = 10, MAX = 11, COMMA = 12, MYSTERY = 13, ID = 14, INT = 15, 
-    NEWLINE = 16, WS = 17
+    T__0 = 1, IF = 2, THEN = 3, ELSE = 4, ENDIF = 5, WHILE = 6, EQ = 7, 
+    NEQ = 8, LE = 9, GE = 10, LESS = 11, GRT = 12, LPAR = 13, RPAR = 14, 
+    MUL = 15, ADD = 16, SUB = 17, MOD = 18, DIV = 19, ABS = 20, MIN = 21, 
+    MAX = 22, COMMA = 23, FACTORIAL = 24, MYSTERY = 25, ID = 26, INT = 27, 
+    NEWLINE = 28, WS = 29
   };
 
   enum {
@@ -79,6 +81,32 @@ public:
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
   };
 
+  class  WhileContext : public StatContext {
+  public:
+    WhileContext(StatContext *ctx);
+
+    antlr4::tree::TerminalNode *WHILE();
+    ExprContext *expr();
+    antlr4::tree::TerminalNode *NEWLINE();
+    StatContext *stat();
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  IfContext : public StatContext {
+  public:
+    IfContext(StatContext *ctx);
+
+    antlr4::tree::TerminalNode *IF();
+    ExprContext *expr();
+    antlr4::tree::TerminalNode *NEWLINE();
+    antlr4::tree::TerminalNode *THEN();
+    StatContext *stat();
+    antlr4::tree::TerminalNode *ENDIF();
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
   class  PrintExprContext : public StatContext {
   public:
     PrintExprContext(StatContext *ctx);
@@ -96,6 +124,22 @@ public:
     antlr4::tree::TerminalNode *ID();
     ExprContext *expr();
     antlr4::tree::TerminalNode *NEWLINE();
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  IfelseContext : public StatContext {
+  public:
+    IfelseContext(StatContext *ctx);
+
+    antlr4::tree::TerminalNode *IF();
+    ExprContext *expr();
+    antlr4::tree::TerminalNode *NEWLINE();
+    antlr4::tree::TerminalNode *THEN();
+    std::vector<StatContext *> stat();
+    StatContext* stat(size_t i);
+    antlr4::tree::TerminalNode *ELSE();
+    antlr4::tree::TerminalNode *ENDIF();
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
   };
@@ -175,6 +219,16 @@ public:
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
   };
 
+  class  FactorialContext : public ExprContext {
+  public:
+    FactorialContext(ExprContext *ctx);
+
+    ExprContext *expr();
+    antlr4::tree::TerminalNode *FACTORIAL();
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
   class  SignContext : public ExprContext {
   public:
     SignContext(ExprContext *ctx);
@@ -218,6 +272,32 @@ public:
     IdContext(ExprContext *ctx);
 
     antlr4::tree::TerminalNode *ID();
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  ComparisionContext : public ExprContext {
+  public:
+    ComparisionContext(ExprContext *ctx);
+
+    std::vector<ExprContext *> expr();
+    ExprContext* expr(size_t i);
+    antlr4::tree::TerminalNode *LESS();
+    antlr4::tree::TerminalNode *LE();
+    antlr4::tree::TerminalNode *GE();
+    antlr4::tree::TerminalNode *GRT();
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  EqualityContext : public ExprContext {
+  public:
+    EqualityContext(ExprContext *ctx);
+
+    std::vector<ExprContext *> expr();
+    ExprContext* expr(size_t i);
+    antlr4::tree::TerminalNode *EQ();
+    antlr4::tree::TerminalNode *NEQ();
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
   };

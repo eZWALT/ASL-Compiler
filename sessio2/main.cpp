@@ -37,13 +37,6 @@ public:
     memory[id] = value;                     // store it in the memory
     return 0;                               // return dummy value
   }
-  
-  // expr : ID
-  antlrcpp::Any visitId(CalcParser::IdContext *ctx) {
-    std::string id = ctx->ID()->getText();         // or: ctx->getText()
-    if (memory.find(id) != memory.end()) return memory[id];
-    return 0;
-  }
 
   antlrcpp::Any visitParentesis(CalcParser::ParentesisContext *ctx){
     return std::any_cast<int>(visit(ctx->expr()));
@@ -85,18 +78,100 @@ public:
     else return n1/n2;
   }
   
-  antlrcpp::Any VisitId(CalcParser::IdContext *ctx){
+  antlrcpp::Any visitId(CalcParser::IdContext *ctx){
     std::string key = ctx->ID()->getText();
     if(memory.find(key) != memory.end()) return memory[key];
     else{
       std::cerr << "identifier not found, try again declaring a new variable with name " << key << std::endl; 
     }
+    return 0;
   }
 
-  antlrcpp::Any VisitMistery(CalcParser::MisteryContext *ctx){
+  antlrcpp::Any visitMistery(CalcParser::MisteryContext *ctx){
+    int visente = 0;
+    for(auto & context: ctx->expr()){
+        int x = std::any_cast<int>(visit(context));
+        visente += x*x;
+    }
+    return visente;
+  }
+
+  antlrcpp::Any visitFactorial(CalcParser::FactorialContext *ctx){
+    int value = std::any_cast<int>(visit(ctx->expr()));
+    int visente = 1;
+    for(int i = value; i > 0; i--){
+       visente = visente * i;
+    }
+
+    return visente;
+  }
+
+  antlrcpp::Any visitIf(CalcParser::IfContext *ctx){
+    int evaluate = std::any_cast<int>(visit(ctx->expr()));
+    //If the evaluation of the expression is different from zero, then it's a true and the statements below are executed
+    if(evaluate != 0){
+      visit(ctx->stat());
+    }
+    return NULL;
+  }
+  antlrcpp::Any visitIfelse(CalcParser::IfelseContext *ctx){
+    int evaluate = std::any_cast<int>(visit(ctx->expr()));
+    //If the evaluation of the expression is different from zero, then it's a true and the statements below are executed
+    if(evaluate != 0) visit(ctx->stat(0));
+    else visit(ctx->stat(1));
+    return NULL;
+  }
+
+  antlrcpp::Any visitWhile(CalcParser::WhileContext *ctx){
+    int condition = std::any_cast<int>(visit(ctx->expr()));
+    while(condition != 0){
+      visit(ctx->stat());
+      condition = std::any_cast<int>(visit(ctx->expr()));
+    }
+    return NULL;
+  }
+
+  antlrcpp::Any visitEquality(CalcParser::EqualityContext *ctx){
+    int a = std::any_cast<int>(visit(ctx->expr(0)));
+    int b = std::any_cast<int>(visit(ctx->expr(1)));
+
+    if(ctx->EQ()){
+      if(a == b) return 1;
+      else return 0;
+    }
+    else{
+      if(a == b) return 0;
+      else return 1;
+    }
 
   }
+
+    antlrcpp::Any visitComparision(CalcParser::ComparisionContext *ctx){
+    int a = std::any_cast<int>(visit(ctx->expr(0)));
+    int b = std::any_cast<int>(visit(ctx->expr(1)));
+
+    if(ctx->LESS()){
+      if(a < b) return 1;
+      else return 0;
+    }
+    else if(ctx->GRT()){
+      if(a > b) return 1;
+      else return 0;
+    }
+    else if(ctx->LE()){
+      if(a <= b) return 1;
+      else return 0;
+    }
+    else{
+      if(a >= b) return 1;
+      else return 0;
+    }
+
+  }
+
+ 
 };
+
 // Sample "calculator" (implemented with a visitor)
 //////////////////////////////////////////////////////////////////////
 
@@ -153,3 +228,4 @@ int main(int argc, const char* argv[]) {
 
   return EXIT_SUCCESS;
 }
+ 

@@ -27,6 +27,18 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitIf(CalcParser::IfContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitIfelse(CalcParser::IfelseContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitWhile(CalcParser::WhileContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitBlank(CalcParser::BlankContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -51,6 +63,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitFactorial(CalcParser::FactorialContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitSign(CalcParser::SignContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -64,6 +80,14 @@ public:
   }
 
   virtual std::any visitId(CalcParser::IdContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitComparision(CalcParser::ComparisionContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitEquality(CalcParser::EqualityContext *ctx) override {
     return visitChildren(ctx);
   }
 

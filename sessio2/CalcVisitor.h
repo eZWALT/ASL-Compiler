@@ -25,6 +25,12 @@ public:
 
     virtual std::any visitAssign(CalcParser::AssignContext *context) = 0;
 
+    virtual std::any visitIf(CalcParser::IfContext *context) = 0;
+
+    virtual std::any visitIfelse(CalcParser::IfelseContext *context) = 0;
+
+    virtual std::any visitWhile(CalcParser::WhileContext *context) = 0;
+
     virtual std::any visitBlank(CalcParser::BlankContext *context) = 0;
 
     virtual std::any visitParentesis(CalcParser::ParentesisContext *context) = 0;
@@ -37,6 +43,8 @@ public:
 
     virtual std::any visitNum(CalcParser::NumContext *context) = 0;
 
+    virtual std::any visitFactorial(CalcParser::FactorialContext *context) = 0;
+
     virtual std::any visitSign(CalcParser::SignContext *context) = 0;
 
     virtual std::any visitMinmax(CalcParser::MinmaxContext *context) = 0;
@@ -44,6 +52,10 @@ public:
     virtual std::any visitArithmetic(CalcParser::ArithmeticContext *context) = 0;
 
     virtual std::any visitId(CalcParser::IdContext *context) = 0;
+
+    virtual std::any visitComparision(CalcParser::ComparisionContext *context) = 0;
+
+    virtual std::any visitEquality(CalcParser::EqualityContext *context) = 0;
 
 
 };

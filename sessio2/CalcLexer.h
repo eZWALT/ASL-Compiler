@@ -12,9 +12,11 @@
 class  CalcLexer : public antlr4::Lexer {
 public:
   enum {
-    T__0 = 1, LPAR = 2, RPAR = 3, MUL = 4, ADD = 5, SUB = 6, MOD = 7, DIV = 8, 
-    ABS = 9, MIN = 10, MAX = 11, COMMA = 12, MYSTERY = 13, ID = 14, INT = 15, 
-    NEWLINE = 16, WS = 17
+    T__0 = 1, IF = 2, THEN = 3, ELSE = 4, ENDIF = 5, WHILE = 6, EQ = 7, 
+    NEQ = 8, LE = 9, GE = 10, LESS = 11, GRT = 12, LPAR = 13, RPAR = 14, 
+    MUL = 15, ADD = 16, SUB = 17, MOD = 18, DIV = 19, ABS = 20, MIN = 21, 
+    MAX = 22, COMMA = 23, FACTORIAL = 24, MYSTERY = 25, ID = 26, INT = 27, 
+    NEWLINE = 28, WS = 29
   };
 
   explicit CalcLexer(antlr4::CharStream *input);
