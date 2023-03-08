@@ -49,7 +49,11 @@ variable_decl
         : VAR ID ':' type
         ;
 
+//IDENTIFICADORS DE TIPUS
 type    : INT
+        | BOOL 
+        | FLOAT 
+        | CHAR 
         ;
 
 statements
@@ -78,10 +82,14 @@ left_expr
         ;
 
 // Grammar for expressions with boolean, relational and aritmetic operators
-expr    : expr op=MUL expr                    # arithmetic
-        | expr op=PLUS expr                   # arithmetic
-        | expr op=EQUAL expr                  # relational
-        | INTVAL                              # value
+expr    : op=(NOT | PLUS | SUB) expr          #unary
+        |expr  op=(MUL | DIV | MOD) expr      # arithmetic
+        | expr op=(PLUS | SUB) expr           # arithmetic
+        | expr op=(EQ | NEQ | GT | GE | LT | LE) expr # relational
+        | expr op=AND expr                    #logic 
+        | expr op=OR  expr                    #logic
+        | '(' expr ')'                        #parenthesis
+        | (INTVAL | FLOATVAL | BOOLVAL | CHARVAL) # value
         | ident                               # exprIdent
         ;
 
@@ -93,12 +101,33 @@ ident   : ID
 /// Lexer Rules
 //////////////////////////////////////////////////
 
+//OPERADORS ARITMETIQUES
 ASSIGN    : '=' ;
-EQUAL     : '==' ;
 PLUS      : '+' ;
+SUB       : '-';
 MUL       : '*';
-VAR       : 'var';
+DIV       : '/';
+MOD       : '%';
+
+//OPERADORS BOOLEANS
+LE        : '<=';
+LT        : '<';
+GE        : '>=';
+GT        : '>';
+EQ        : '==' ;
+NEQ       : '!=';
+AND       : 'and';
+OR        : 'or';
+NOT       : 'not';
+
+//IDENTIFICADORS DE TIPUS
 INT       : 'int';
+BOOL      : 'bool';
+FLOAT     : 'float';
+CHAR      : 'char';
+
+//IDENTIFICADORS D'INSTRUCCIONS
+VAR       : 'var';
 IF        : 'if' ;
 THEN      : 'then' ;
 ELSE      : 'else' ;
@@ -108,7 +137,13 @@ ENDFUNC   : 'endfunc' ;
 READ      : 'read' ;
 WRITE     : 'write' ;
 ID        : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
-INTVAL    : ('0'..'9')+ ;
+
+fragment
+DIGIT     : ('0'..'9');
+INTVAL    : DIGIT+ ;
+FLOATVAL  : [+-]? (DIGIT+ ('.' DIGIT*)? ('e' [+-]? DIGIT+)? | '.' DIGIT+ ('e' [+-]? DIGIT+)? );
+BOOLVAL   : 'true' | 'false'; 
+CHARVAL   :  '\'' ( ESC_SEQ | ~('\\'|'\'') ) '\'' ;
 
 // Strings (in quotes) with escape sequences
 STRING    : '"' ( ESC_SEQ | ~('\\'|'"') )* '"' ;
