@@ -46,7 +46,7 @@ declarations
         ;
 
 variable_decl
-        : VAR ID ':' type
+        : VAR ID (',' ID)* ':' type
         ;
 
 //IDENTIFICADORS DE TIPUS
@@ -82,14 +82,14 @@ left_expr
         ;
 
 // Grammar for expressions with boolean, relational and aritmetic operators
-expr    : op=(NOT | PLUS | SUB) expr          #unary
+expr    :  '(' expr ')'                     #parenthesis 
+        | op=(NOT | PLUS | SUB) expr          #unary
         |expr  op=(MUL | DIV | MOD) expr      # arithmetic
         | expr op=(PLUS | SUB) expr           # arithmetic
         | expr op=(EQ | NEQ | GT | GE | LT | LE) expr # relational
         | expr op=AND expr                    #logic 
         | expr op=OR  expr                    #logic
-        | '(' expr ')'                        #parenthesis
-        | (INTVAL | FLOATVAL | BOOLVAL | CHARVAL) # value
+        | (INTVAL  | FLOATVAL | BOOLVAL | CHARVAL) # value
         | ident                               # exprIdent
         ;
 
@@ -141,7 +141,7 @@ ID        : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
 fragment
 DIGIT     : ('0'..'9');
 INTVAL    : DIGIT+ ;
-FLOATVAL  : [+-]? (DIGIT+ ('.' DIGIT*)? ('e' [+-]? DIGIT+)? | '.' DIGIT+ ('e' [+-]? DIGIT+)? );
+FLOATVAL  :  (DIGIT+ ('.' DIGIT*)? ('e' [+-]? DIGIT+)? | '.' DIGIT+ ('e' [+-]? DIGIT+)? );
 BOOLVAL   : 'true' | 'false'; 
 CHARVAL   :  '\'' ( ESC_SEQ | ~('\\'|'\'') ) '\'' ;
 
