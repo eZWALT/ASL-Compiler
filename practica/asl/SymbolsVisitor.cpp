@@ -104,11 +104,12 @@ antlrcpp::Any SymbolsVisitor::visitDeclarations(AslParser::DeclarationsContext *
 }
 
 antlrcpp::Any SymbolsVisitor::visitVariable_decl(AslParser::Variable_declContext *ctx) {
+  // NECESSARI MODIFICAR
   DEBUG_ENTER();
   visit(ctx->type());
-  std::string ident = ctx->ID()->getText();
+  std::string ident = ctx->ID(0)->getText();
   if (Symbols.findInCurrentScope(ident)) {
-    Errors.declaredIdent(ctx->ID());
+    Errors.declaredIdent(ctx->ID(0));
   }
   else {
     TypesMgr::TypeId t1 = getTypeDecor(ctx->type());
@@ -124,7 +125,7 @@ antlrcpp::Any SymbolsVisitor::visitType(AslParser::TypeContext *ctx) {
     TypesMgr::TypeId t = Types.createIntegerTy();
     putTypeDecor(ctx, t);
   }
-  else if(ctx->FLOAT()){
+/*  else if(ctx->FLOAT()){
     TypesMgr::TypeId t = Types.createFloatTy();
     putTypeDecor(ctx,t);
   }
@@ -135,7 +136,7 @@ antlrcpp::Any SymbolsVisitor::visitType(AslParser::TypeContext *ctx) {
   else if(ctx->CHAR()){
     TypesMgr::TypeId t = Types.createCharacterTy();
     putTypeDecor(ctx,t);
-  }
+  }*/
   DEBUG_EXIT();
   return 0;
 }
