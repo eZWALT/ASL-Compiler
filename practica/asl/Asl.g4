@@ -136,13 +136,15 @@ FUNC      : 'func' ;
 ENDFUNC   : 'endfunc' ;
 READ      : 'read' ;
 WRITE     : 'write' ;
+
+BOOLVAL   : 'true' | 'false'; 
+
 ID        : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
 
 fragment
 DIGIT     : ('0'..'9');
 INTVAL    : DIGIT+ ;
 FLOATVAL  :  (DIGIT+ ('.' DIGIT*)? ('e' [+-]? DIGIT+)? | '.' DIGIT+ ('e' [+-]? DIGIT+)? );
-BOOLVAL   : 'true' | 'false'; 
 CHARVAL   :  '\'' ( ESC_SEQ | ~('\\'|'\'') ) '\'' ;
 
 // Strings (in quotes) with escape sequences
