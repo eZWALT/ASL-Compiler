@@ -127,9 +127,11 @@ antlrcpp::Any TypeCheckVisitor::visitAssignStmt(AslParser::AssignStmtContext *ct
   visit(ctx->expr());
   TypesMgr::TypeId t1 = getTypeDecor(ctx->left_expr());
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
+  std::cout << "### left expression is type " << Types.to_string(t1) << std::endl;
+  std::cout << "### right value is type " << Types.to_string(t2) << '\n' << std::endl;
   if ((not Types.isErrorTy(t1)) and (not Types.isErrorTy(t2)) and
       (not Types.copyableTypes(t1, t2)))
-    Errors.incompatibleAssignment(ctx->ASSIGN());
+    {Errors.incompatibleAssignment(ctx->ASSIGN()); std::cout << "Incompatible assignment\n";}
   if ((not Types.isErrorTy(t1)) and (not getIsLValueDecor(ctx->left_expr())))
     Errors.nonReferenceableLeftExpr(ctx->left_expr());
   DEBUG_EXIT();
@@ -210,8 +212,17 @@ antlrcpp::Any TypeCheckVisitor::visitArithmetic(AslParser::ArithmeticContext *ct
   if (((not Types.isErrorTy(t1)) and (not Types.isNumericTy(t1))) or
       ((not Types.isErrorTy(t2)) and (not Types.isNumericTy(t2))))
     Errors.incompatibleOperator(ctx->op);
-  TypesMgr::TypeId t = Types.createIntegerTy();
-  putTypeDecor(ctx, t);
+
+  // Module operation (%) can only be applied to integer operands. The expected behaviour for negative operands is the same than in C++.
+  if ((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2) || not Types.isIntegerTy(t1)) and (ctx->MOD()))
+    Errors.incompatibleOperator(ctx->op);
+
+  TypesMgr::TypeId r;
+
+  if (Types.isFloatTy(t1) || Types.isFloatTy(t2)) r = Types.createFloatTy();
+  else r = Types.createFloatTy();
+
+  putTypeDecor(ctx, r);
   putIsLValueDecor(ctx, false);
   DEBUG_EXIT();
   return 0;
