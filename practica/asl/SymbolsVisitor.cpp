@@ -74,7 +74,7 @@ antlrcpp::Any SymbolsVisitor::visitProgram(AslParser::ProgramContext *ctx) {
   return 0;
 }
 
-antlrcpp::Any UnaryVisitor::visitUnary(AslParser::UnaryContext *ctx)
+antlrcpp::Any SymbolsVisitor::visitUnary(AslParser::UnaryContext *ctx)
 {
   DEBUG_ENTER();
   antlrcpp::Any r = visitChildren(ctx);

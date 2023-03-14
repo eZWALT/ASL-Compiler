@@ -236,6 +236,22 @@ antlrcpp::Any TypeCheckVisitor::visitUnary(AslParser::UnaryContext *ctx)
   return 0;
 }
 
+antlrcpp::Any TypeCheckVisitor::visitLogic(AslParser::LogicContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->expr(0));
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->expr(0));
+  visit(ctx->expr(1));
+  TypesMgr::TypeId t2 = getTypeDecor(ctx->expr(1));
+  if ((not Types.isErrorTy(t1) and (not Types.isBooleanTy(t1))) or
+      (not Types.isErrorTy(t2) and (not Types.isBooleanTy(t2))))
+        Errors.incompatibleOperator(ctx->op);
+  TypesMgr::TypeId t = Types.createBooleanTy();
+  putTypeDecor(ctx, t);
+  putIsLValueDecor(ctx, false);
+  DEBUG_EXIT();
+  return 0;
+}
+
 antlrcpp::Any TypeCheckVisitor::visitRelational(AslParser::RelationalContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->expr(0));
