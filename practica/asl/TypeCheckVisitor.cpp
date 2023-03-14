@@ -203,12 +203,28 @@ antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx)
   return 0;
 }
 
+antlrcpp::Any TypeCheckVisitor::visitParen(AslParser::ParenContext *ctx)
+{
+  DEBUG_ENTER();
+  visit(ctx->expr());
+  TypesMgr::TypeId t = getTypeDecor(ctx->expr());
+
+  putTypeDecor(ctx, t);
+  putIsLValueDecor(ctx, false);
+  DEBUG_EXIT();
+  return 0;
+}
+
 antlrcpp::Any TypeCheckVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->expr(0));
   TypesMgr::TypeId t1 = getTypeDecor(ctx->expr(0));
   visit(ctx->expr(1));
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr(1));
+
+  //if (Types.isErrorTy(t1) || Types.isErrorTy(t2)) Errors.incompatibleOperator(ctx->op);
+
+
   if (((not Types.isErrorTy(t1)) and (not Types.isNumericTy(t1))) or
       ((not Types.isErrorTy(t2)) and (not Types.isNumericTy(t2))))
     Errors.incompatibleOperator(ctx->op);
@@ -216,6 +232,7 @@ antlrcpp::Any TypeCheckVisitor::visitArithmetic(AslParser::ArithmeticContext *ct
   // Module operation (%) can only be applied to integer operands. The expected behaviour for negative operands is the same than in C++.
   if ((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2) || not Types.isIntegerTy(t1)) and (ctx->MOD()))
     Errors.incompatibleOperator(ctx->op);
+
 
   TypesMgr::TypeId r;
 
@@ -233,6 +250,7 @@ antlrcpp::Any TypeCheckVisitor::visitUnary(AslParser::UnaryContext *ctx)
   DEBUG_ENTER();
   visit(ctx->expr());
   TypesMgr::TypeId t = getTypeDecor(ctx->expr());
+
 
   if (not Types.isErrorTy(t)){
     if (not Types.isNumericTy(t) && (ctx->PLUS() || ctx->SUB()))

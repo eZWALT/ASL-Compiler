@@ -82,8 +82,8 @@ left_expr
         ;
 
 // Grammar for expressions with boolean, relational and aritmetic operators
-expr    :  '(' expr ')'                     #parenthesis 
-        | op=(NOT | PLUS | SUB) expr          #unary
+expr    :  '(' expr ')'                     # paren 
+        | op=(NOT | PLUS | SUB) expr          # unary
         |expr  op=(MUL | DIV | MOD) expr      # arithmetic
         | expr op=(PLUS | SUB) expr           # arithmetic
         | expr op=(EQ | NEQ | GT | GE | LT | LE) expr # relational
