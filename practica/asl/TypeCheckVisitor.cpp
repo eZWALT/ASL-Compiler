@@ -217,6 +217,25 @@ antlrcpp::Any TypeCheckVisitor::visitArithmetic(AslParser::ArithmeticContext *ct
   return 0;
 }
 
+antlrcpp::Any TypeCheckVisitor::visitUnary(AslParser::UnaryContext *ctx)
+{
+  DEBUG_ENTER();
+  visit(ctx->expr());
+  TypesMgr::TypeId t = getTypeDecor(ctx->expr());
+
+  if (not Types.isErrorTy(t)){
+    if (not Types.isNumericTy(t) && (ctx->PLUS() || ctx->SUB()))
+      Errors.incompatibleOperator(ctx->op);
+    else if (not Types.isBooleanTy(t) && ctx->NOT())
+      Errors.incompatibleOperator(ctx->op);
+  }
+
+  putTypeDecor(ctx, t);
+  putIsLValueDecor(ctx, false);
+  DEBUG_EXIT();
+  return 0;
+}
+
 antlrcpp::Any TypeCheckVisitor::visitRelational(AslParser::RelationalContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->expr(0));
