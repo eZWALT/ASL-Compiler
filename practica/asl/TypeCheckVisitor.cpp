@@ -127,11 +127,11 @@ antlrcpp::Any TypeCheckVisitor::visitAssignStmt(AslParser::AssignStmtContext *ct
   visit(ctx->expr());
   TypesMgr::TypeId t1 = getTypeDecor(ctx->left_expr());
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
-  std::cout << "### left expression is type " << Types.to_string(t1) << std::endl;
-  std::cout << "### right value is type " << Types.to_string(t2) << '\n' << std::endl;
+  //std::cout << "### left expression is type " << Types.to_string(t1) << std::endl;
+  //std::cout << "### right value is type " << Types.to_string(t2) << '\n' << std::endl;
   if ((not Types.isErrorTy(t1)) and (not Types.isErrorTy(t2)) and
       (not Types.copyableTypes(t1, t2)))
-    {Errors.incompatibleAssignment(ctx->ASSIGN()); std::cout << "Incompatible assignment\n";}
+    Errors.incompatibleAssignment(ctx->ASSIGN()); 
   if ((not Types.isErrorTy(t1)) and (not getIsLValueDecor(ctx->left_expr())))
     Errors.nonReferenceableLeftExpr(ctx->left_expr());
   DEBUG_EXIT();
@@ -220,7 +220,7 @@ antlrcpp::Any TypeCheckVisitor::visitArithmetic(AslParser::ArithmeticContext *ct
   TypesMgr::TypeId r;
 
   if (Types.isFloatTy(t1) || Types.isFloatTy(t2)) r = Types.createFloatTy();
-  else r = Types.createFloatTy();
+  else r = Types.createIntegerTy();
 
   putTypeDecor(ctx, r);
   putIsLValueDecor(ctx, false);
@@ -282,7 +282,13 @@ antlrcpp::Any TypeCheckVisitor::visitRelational(AslParser::RelationalContext *ct
 
 antlrcpp::Any TypeCheckVisitor::visitValue(AslParser::ValueContext *ctx) {
   DEBUG_ENTER();
-  TypesMgr::TypeId t = Types.createIntegerTy();
+  TypesMgr::TypeId t;
+
+  if (ctx->INTVAL()) t = Types.createIntegerTy();
+  else if (ctx->FLOATVAL()) t = Types.createFloatTy();
+  else if (ctx->CHARVAL()) t = Types.createCharacterTy();
+  else if (ctx->BOOLVAL()) t = Types.createBooleanTy();
+
   putTypeDecor(ctx, t);
   putIsLValueDecor(ctx, false);
   DEBUG_EXIT();
