@@ -144,6 +144,27 @@ antlrcpp::Any TypeCheckVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   TypesMgr::TypeId t1 = getTypeDecor(ctx->expr());
   if ((not Types.isErrorTy(t1)) and (not Types.isBooleanTy(t1)))
     Errors.booleanRequired(ctx);
+  
+  for (auto& ct : ctx->statements()) visit(ct);
+
+  DEBUG_EXIT();
+  return 0;
+}
+
+antlrcpp::Any TypeCheckVisitor::visitReturn(AslParser::ReturnContext *ctx) {
+  DEBUG_ENTER();
+  DEBUG_EXIT();
+  return 0;
+}
+
+antlrcpp::Any TypeCheckVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx) {
+  DEBUG_ENTER();
+  visit(ctx->expr());
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->expr());
+
+  if ((not Types.isErrorTy(t1)) and (not Types.isBooleanTy(t1)))
+    Errors.booleanRequired(ctx);
+  
   visit(ctx->statements());
   DEBUG_EXIT();
   return 0;
@@ -222,7 +243,6 @@ antlrcpp::Any TypeCheckVisitor::visitArithmetic(AslParser::ArithmeticContext *ct
   visit(ctx->expr(1));
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr(1));
 
-  //if (Types.isErrorTy(t1) || Types.isErrorTy(t2)) Errors.incompatibleOperator(ctx->op);
 
 
   if (((not Types.isErrorTy(t1)) and (not Types.isNumericTy(t1))) or
