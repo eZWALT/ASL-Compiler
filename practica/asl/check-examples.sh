@@ -1,7 +1,5 @@
 #!/bin/bash
 
-export LD_LIBRARY_PATH=$HOME/assig/cl/runtime/lib
-
 #--------------------------------------------
 function check_chkt_example() {
     expected=$1

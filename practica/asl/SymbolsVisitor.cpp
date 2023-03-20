@@ -84,19 +84,46 @@ antlrcpp::Any SymbolsVisitor::visitUnary(AslParser::UnaryContext *ctx)
 
 antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   DEBUG_ENTER();
-  std::string funcName = ctx->ID()->getText();
+  std::string funcName = ctx->ID(0)->getText();
   SymTable::ScopeId sc = Symbols.pushNewScope(funcName);
   putScopeDecor(ctx, sc);
+  std::vector<TypesMgr::TypeId> lParamsTy;
+
+  for (uint i = 1; i < ctx->ID().size(); ++i)
+  {
+    visit(ctx->type(i-1));
+
+    std::string ident = ctx->ID(i)->getText();
+    if (Symbols.findInCurrentScope(ident)) Errors.declaredIdent(ctx->ID(i));
+    else {
+      TypesMgr::TypeId ti = getTypeDecor(ctx->type(i-1));
+      Symbols.addLocalVar(ident, ti);
+      //std::cout << "To parameter " << ident << " setting type " << Types.to_string(ti) << std::endl;
+      lParamsTy.push_back(ti);
+    }
+  }
+
+  TypesMgr::TypeId tRet;
+
+  if (ctx->ID().size() == ctx->type().size()){
+    visit(ctx->type(ctx->type().size()-1));
+
+    tRet = getTypeDecor(ctx->type(ctx->type().size()-1));
+  } else tRet = Types.createVoidTy();
+
+  //std::cout << "Setting type decor to " << Types.to_string(tRet) << std::endl;
+  putTypeDecor(ctx, tRet);
+
   visit(ctx->declarations());
   // Symbols.print();
   Symbols.popScope();
-  std::string ident = ctx->ID()->getText();
+
+  std::string ident = ctx->ID(0)->getText();
   if (Symbols.findInCurrentScope(ident)) {
-    Errors.declaredIdent(ctx->ID());
+    Errors.declaredIdent(ctx->ID(0));
   }
   else {
-    std::vector<TypesMgr::TypeId> lParamsTy;
-    TypesMgr::TypeId tRet = Types.createVoidTy();
+
     TypesMgr::TypeId tFunc = Types.createFunctionTy(lParamsTy, tRet);
     Symbols.addFunction(ident, tFunc);
   }

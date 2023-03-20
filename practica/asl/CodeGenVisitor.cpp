@@ -83,7 +83,7 @@ antlrcpp::Any CodeGenVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   DEBUG_ENTER();
   SymTable::ScopeId sc = getScopeDecor(ctx);
   Symbols.pushThisScope(sc);
-  subroutine subr(ctx->ID()->getText());
+  subroutine subr(ctx->ID(0)->getText());
   codeCounters.reset();
   std::vector<var> && lvars = visit(ctx->declarations());
   for (auto & onevar : lvars) {
@@ -109,7 +109,6 @@ antlrcpp::Any CodeGenVisitor::visitDeclarations(AslParser::DeclarationsContext *
 }
 
 antlrcpp::Any CodeGenVisitor::visitVariable_decl(AslParser::Variable_declContext *ctx) {
-  // NECESSARI MODIFICAR
   DEBUG_ENTER();
   TypesMgr::TypeId   t1 = getTypeDecor(ctx->type());
   std::size_t      size = Types.getSizeOfType(t1);
@@ -152,7 +151,7 @@ antlrcpp::Any CodeGenVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   CodeAttribs     && codAtsE = visit(ctx->expr());
   std::string          addr1 = codAtsE.addr;
   instructionList &    code1 = codAtsE.code;
-  instructionList &&   code2 = visit(ctx->statements());
+  instructionList &&   code2 = visit(ctx->statements(0));
   std::string label = codeCounters.newLabelIF();
   std::string labelEndIf = "endif"+label;
   code = code1 || instruction::FJUMP(addr1, labelEndIf) ||

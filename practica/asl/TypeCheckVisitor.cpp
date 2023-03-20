@@ -87,6 +87,11 @@ antlrcpp::Any TypeCheckVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   SymTable::ScopeId sc = getScopeDecor(ctx);
   Symbols.pushThisScope(sc);
   // Symbols.print();
+  TypesMgr::TypeId tf = getTypeDecor(ctx);
+  //std::cout << "Reported type of function is " << Types.to_string(tf) << std::endl;
+
+  setCurrentFunctionTy(tf);
+
   visit(ctx->statements());
   Symbols.popScope();
   DEBUG_EXIT();
@@ -153,6 +158,15 @@ antlrcpp::Any TypeCheckVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
 
 antlrcpp::Any TypeCheckVisitor::visitReturn(AslParser::ReturnContext *ctx) {
   DEBUG_ENTER();
+  if (ctx->expr()){
+    visit(ctx->expr());
+    TypesMgr::TypeId t = getTypeDecor(ctx->expr());
+
+    //std::cout << "Return type is " << Types.to_string(t) << " and function type is " << Types.to_string(getCurrentFunctionTy()) << std::endl;
+
+    if ((not Types.isErrorTy(t)) and (not Types.equalTypes(getCurrentFunctionTy(), t))) 
+      Errors.incompatibleReturn(ctx->RETURN());  }
+  
   DEBUG_EXIT();
   return 0;
 }
