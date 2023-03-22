@@ -227,6 +227,7 @@ antlrcpp::Any TypeCheckVisitor::visitWriteExpr(AslParser::WriteExprContext *ctx)
 //   return r;
 // }
 
+/*
 antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx) {
   DEBUG_ENTER();
   visit(ctx->ident());
@@ -235,6 +236,73 @@ antlrcpp::Any TypeCheckVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx)
   bool b = getIsLValueDecor(ctx->ident());
   putIsLValueDecor(ctx, b);
   DEBUG_EXIT();
+  return 0;
+}*/
+
+antlrcpp::Any TypeCheckVisitor::visitSimpleIdent(AslParser::SimpleIdentContext *ctx){
+  DEBUG_ENTER();
+  visit(ctx->ident());
+  TypesMgr::TypeId t1 = getTypeDecor(ctx->ident());
+  putTypeDecor(ctx, t1);
+  bool b = getIsLValueDecor(ctx->ident());
+  putIsLValueDecor(ctx, b);
+  DEBUG_EXIT();
+  return 0;
+}
+
+antlrcpp::Any TypeCheckVisitor::visitArrayIdent(AslParser::ArrayIdentContext *ctx){
+  DEBUG_ENTER();
+  visit(ctx->ident());
+  visit(ctx->expr());
+
+  TypesMgr::TypeId texp = getTypeDecor(ctx->expr());
+  TypesMgr::TypeId t = getTypeDecor(ctx->ident());
+
+  if (not Types.isErrorTy(texp) && not Types.isIntegerTy(texp))
+    Errors.nonIntegerIndexInArrayAccess(ctx->expr());
+
+  if (not Types.isErrorTy(t) && not Types.isArrayTy(t)){
+    Errors.nonArrayInArrayAccess(ctx);
+    putTypeDecor(ctx, Types.createErrorTy());  
+  } else {
+    // IDENT [ EXPR ]
+    putTypeDecor(ctx, Types.getArrayElemType(t));
+
+  }
+
+  bool b = getIsLValueDecor(ctx->ident());
+  putIsLValueDecor(ctx, b);
+  DEBUG_EXIT();
+
+  return 0;
+
+}
+
+antlrcpp::Any TypeCheckVisitor::visitArray(AslParser::ArrayContext *ctx)
+{
+  DEBUG_ENTER();
+  visit(ctx->ident());
+  visit(ctx->expr());
+
+  TypesMgr::TypeId texp = getTypeDecor(ctx->expr());
+  TypesMgr::TypeId t = getTypeDecor(ctx->ident());
+
+  if (not Types.isErrorTy(texp) && not Types.isIntegerTy(texp))
+    Errors.nonIntegerIndexInArrayAccess(ctx->expr());
+
+  if (not Types.isErrorTy(t) && not Types.isArrayTy(t)){
+    Errors.nonArrayInArrayAccess(ctx);
+    putTypeDecor(ctx, Types.createErrorTy());  
+  } else {
+
+    putTypeDecor(ctx, Types.getArrayElemType(t));
+
+  }
+
+  bool b = getIsLValueDecor(ctx->ident());
+  putIsLValueDecor(ctx, b);
+  DEBUG_EXIT();
+
   return 0;
 }
 
