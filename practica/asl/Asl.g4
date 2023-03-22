@@ -86,13 +86,14 @@ left_expr
 
 // Grammar for expressions with boolean, relational and aritmetic operators
 expr    :  '(' expr ')'                     # paren 
+        | ident '[' expr ']'                 # array
+        | ident '(' ')'                      # call
         | op=(NOT | PLUS | SUB) expr          # unary
         |expr  op=(MUL | DIV | MOD) expr      # arithmetic
         | expr op=(PLUS | SUB) expr           # arithmetic
         | expr op=(EQ | NEQ | GT | GE | LT | LE) expr # relational
         | expr op=AND expr                    #logic 
         | expr op=OR  expr                    #logic
-        | ident '[' expr ']'                    # array
         | (INTVAL  | FLOATVAL | BOOLVAL | CHARVAL) # value
         | ident                               # exprIdent
         ;

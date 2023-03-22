@@ -278,6 +278,26 @@ antlrcpp::Any TypeCheckVisitor::visitArrayIdent(AslParser::ArrayIdentContext *ct
 
 }
 
+antlrcpp::Any TypeCheckVisitor::visitCall(AslParser::CallContext *ctx)
+{
+  DEBUG_ENTER();
+
+  visit(ctx->ident());
+
+  TypesMgr::TypeId t = getTypeDecor(ctx->ident());
+
+  if (Types.isErrorTy(t)){
+    putTypeDecor(ctx, Types.createErrorTy());
+  }
+  else {
+    TypesMgr::TypeId tRet = Symbols.getType(ctx->ident()->getText());
+    putTypeDecor(ctx, Types.getFuncReturnType(tRet));
+  }
+
+  DEBUG_EXIT();
+  return 0;
+}
+
 antlrcpp::Any TypeCheckVisitor::visitArray(AslParser::ArrayContext *ctx)
 {
   DEBUG_ENTER();
