@@ -87,7 +87,7 @@ left_expr
 // Grammar for expressions with boolean, relational and aritmetic operators
 expr    :  '(' expr ')'                     # paren 
         | ident '[' expr ']'                 # array
-        | ident '(' ')'                      # call
+        | ident '(' (expr (',' expr)*)? ')'   # call
         | op=(NOT | PLUS | SUB) expr          # unary
         |expr  op=(MUL | DIV | MOD) expr      # arithmetic
         | expr op=(PLUS | SUB) expr           # arithmetic

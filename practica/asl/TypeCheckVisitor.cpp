@@ -278,14 +278,36 @@ antlrcpp::Any TypeCheckVisitor::visitArrayIdent(AslParser::ArrayIdentContext *ct
 
 }
 
+//YO CAL ACTUALITZAR STMT'S I TAMBÉ CAL ACTUALITZAR TOT AIXO
 antlrcpp::Any TypeCheckVisitor::visitCall(AslParser::CallContext *ctx)
 {
   DEBUG_ENTER();
 
+  //Getting the function ID
   visit(ctx->ident());
-
   TypesMgr::TypeId t = getTypeDecor(ctx->ident());
 
+
+  //Checking for number of arguments mismatch 
+  int NumArgs = ctx->expr().size();
+  std::size_t NumParameters = Types.getNumOfParameters(t);
+
+  if((std::size_t) NumArgs != NumParameters) Errors.numberOfParameters(ctx->ident());
+
+  //Checking for a mismatch in the types of the parameters given by the call
+  //It may happen that an integer value is given to feed a float parameter anyway, but no any other type mismatch is correct
+  auto types = Types.getFuncParamsTypes(t);
+  for(unsigned int i = 0; i < types.size(); ++i){
+
+
+    if(not Types.equalTypes( getTypeDecor(visit(ctx->expr(i))), types[i] )){
+      if(not (Types.isFloatTy(types[i]) and Types.isIntegerTy( getTypeDecor(visit(ctx->expr(i))))))  Errors.incompatibleParameter(ctx->expr(i),i+1,ctx);
+    } 
+  }
+
+
+
+  //If the type of the function is error, then this call is gonna be decorated as terror, otherwise is decorated with it's return type
   if (Types.isErrorTy(t)){
     putTypeDecor(ctx, Types.createErrorTy());
   }
