@@ -132,9 +132,10 @@ antlrcpp::Any TypeCheckVisitor::visitAssignStmt(AslParser::AssignStmtContext *ct
   visit(ctx->expr());
   TypesMgr::TypeId t1 = getTypeDecor(ctx->left_expr());
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr());
-  //std::cout << "### left expression is type " << Types.to_string(t1) << std::endl;
-  //std::cout << "### right value is type " << Types.to_string(t2) << '\n' << std::endl;
-  if ((not Types.isErrorTy(t1)) and (not Types.isErrorTy(t2)) and
+  std::cout << "### left expression is type " << Types.to_string(t1) << std::endl;
+  std::cout << "### right value is type " << Types.to_string(t2) << '\n' << std::endl;
+
+  if ((not Types.isErrorTy(t1)) and (not Types.isErrorTy(t2)) and (not Types.isVoidTy(t2)) and 
       (not Types.copyableTypes(t1, t2)))
     Errors.incompatibleAssignment(ctx->ASSIGN()); 
   if ((not Types.isErrorTy(t1)) and (not getIsLValueDecor(ctx->left_expr())))
@@ -207,8 +208,6 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
     auto types = Types.getFuncParamsTypes(t);
 
     for(unsigned int i = 0; i < types.size(); ++i){
-      std::cout << "iteration " << i << std::endl;
-
       visit(ctx->expr(i));
       TypesMgr::TypeId texp = getTypeDecor(ctx->expr(i));
 
@@ -331,8 +330,6 @@ antlrcpp::Any TypeCheckVisitor::visitCall(AslParser::CallContext *ctx)
     auto types = Types.getFuncParamsTypes(t);
 
     for(unsigned int i = 0; i < types.size(); ++i){
-      std::cout << "iteration " << i << std::endl;
-
       visit(ctx->expr(i));
       TypesMgr::TypeId texp = getTypeDecor(ctx->expr(i));
 
@@ -341,6 +338,9 @@ antlrcpp::Any TypeCheckVisitor::visitCall(AslParser::CallContext *ctx)
         Errors.incompatibleParameter(ctx->expr(i), i+1, ctx);
       }
     }
+
+    if (Types.isVoidFunction(t)) Errors.isNotFunction(ctx);
+
 
   }
 
