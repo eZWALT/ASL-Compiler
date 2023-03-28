@@ -187,19 +187,20 @@ antlrcpp::Any TypeCheckVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx)
 antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   DEBUG_ENTER();
 
-    //Getting the function ID
+  //Getting the function ID
   visit(ctx->ident());
   TypesMgr::TypeId t = getTypeDecor(ctx->ident());
 
-  //Checking if the function is not a function or has an terror type
-  if((not Types.isFunctionTy(t)) and (not Types.isErrorTy(t))){
-    Errors.isNotCallable(ctx->ident());
-  } 
-  else if(not Types.isErrorTy(t)){
-    //Checking for number of arguments mismatch 
+  if (Types.isErrorTy(t)){
+    putTypeDecor(ctx, Types.createErrorTy());
+  }
+  else {
+    TypesMgr::TypeId tRet = Symbols.getType(ctx->ident()->getText());
+    putTypeDecor(ctx, Types.getFuncReturnType(tRet));
+
     int NumArgs = ctx->expr().size();
     std::size_t NumParameters = Types.getNumOfParameters(t);
-    if((std::size_t) NumArgs != NumParameters) Errors.numberOfParameters(ctx->ident());
+    if (static_cast<int>(NumArgs) != NumParameters) Errors.numberOfParameters(ctx->ident());
 
     //Checking for a mismatch in the types of the parameters given by the call
     //It may happen that an integer value is given to feed a float parameter anyway, but no any other type mismatch is correct
@@ -211,8 +212,8 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
         if(not (Types.isFloatTy(types[i]) and Types.isIntegerTy( getTypeDecor(visit(ctx->expr(i))))))  Errors.incompatibleParameter(ctx->expr(i),i+1,ctx);
       } 
     }
-  }
 
+  }
 
   putIsLValueDecor(ctx,false);
   DEBUG_EXIT();
@@ -307,17 +308,17 @@ antlrcpp::Any TypeCheckVisitor::visitCall(AslParser::CallContext *ctx)
   //Getting the function ID
   visit(ctx->ident());
   TypesMgr::TypeId t = getTypeDecor(ctx->ident());
-  TypesMgr::TypeId tRet;
 
-  //Checking if the function is callable or not (maybe it was parsed correctly but it isn't a function at all like juan(a,b,c) ... )
-  if(not Types.isFunctionTy(t)){
-    Errors.isNotCallable(ctx->ident());
-  } 
-  else{
-    //Checking for number of arguments mismatch 
+  if (Types.isErrorTy(t)){
+    putTypeDecor(ctx, Types.createErrorTy());
+  }
+  else {
+    TypesMgr::TypeId tRet = Symbols.getType(ctx->ident()->getText());
+    putTypeDecor(ctx, Types.getFuncReturnType(tRet));
+
     int NumArgs = ctx->expr().size();
     std::size_t NumParameters = Types.getNumOfParameters(t);
-    if((std::size_t) NumArgs != NumParameters) Errors.numberOfParameters(ctx->ident());
+    if (static_cast<int>(NumArgs) != NumParameters) Errors.numberOfParameters(ctx->ident());
 
     //Checking for a mismatch in the types of the parameters given by the call
     //It may happen that an integer value is given to feed a float parameter anyway, but no any other type mismatch is correct
@@ -329,24 +330,7 @@ antlrcpp::Any TypeCheckVisitor::visitCall(AslParser::CallContext *ctx)
         if(not (Types.isFloatTy(types[i]) and Types.isIntegerTy( getTypeDecor(visit(ctx->expr(i))))))  Errors.incompatibleParameter(ctx->expr(i),i+1,ctx);
       } 
     }
-  }
 
-
-
-
-  //If the type of the function is error, then this call is gonna be decorated as terror, otherwise is decorated with it's return type
-  if (Types.isErrorTy(t)){
-    tRet = Types.createErrorTy();
-    putTypeDecor(ctx, tRet);
-  }
-  else if(Types.isVoidFunction(t)){
-    tRet = Types.createErrorTy();
-    putTypeDecor(ctx,tRet);
-    Errors.isNotFunction(ctx->ident());
-  }
-  else {
-    tRet = Symbols.getType(ctx->ident()->getText());
-    putTypeDecor(ctx, Types.getFuncReturnType(tRet));
   }
 
   putIsLValueDecor(ctx,false);
