@@ -50,7 +50,12 @@ variable_decl
         ;
 
 //IDENTIFICADORS DE TIPUS
-type    : INT
+type    : basic_type
+        | ARRAY '[' INTVAL ']' OF basic_type
+        ;
+
+basic_type    
+        : INT
         | BOOL 
         | FLOAT 
         | CHAR 
@@ -130,6 +135,8 @@ INT       : 'int';
 BOOL      : 'bool';
 FLOAT     : 'float';
 CHAR      : 'char';
+ARRAY     : 'array';
+OF        : 'of';
 
 //IDENTIFICADORS D'INSTRUCCIONS
 VAR       : 'var';

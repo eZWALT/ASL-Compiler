@@ -157,7 +157,7 @@ antlrcpp::Any SymbolsVisitor::visitVariable_decl(AslParser::Variable_declContext
   return 0;
 }
 
-antlrcpp::Any SymbolsVisitor::visitType(AslParser::TypeContext *ctx) {
+antlrcpp::Any SymbolsVisitor::visitBasic_type(AslParser::Basic_typeContext *ctx) {
   DEBUG_ENTER();
   if (ctx->INT()) {
     TypesMgr::TypeId t = Types.createIntegerTy();
@@ -177,6 +177,25 @@ antlrcpp::Any SymbolsVisitor::visitType(AslParser::TypeContext *ctx) {
   }
   DEBUG_EXIT();
   return 0;
+}
+
+antlrcpp::Any SymbolsVisitor::visitType(AslParser::TypeContext *ctx){
+  DEBUG_ENTER();
+
+  if (ctx->ARRAY()){
+    // És una array
+    visit(ctx->basic_type());
+    TypesMgr::TypeId telem = getTypeDecor(ctx->basic_type());    
+
+    TypesMgr::TypeId t = Types.createArrayTy(atoi(ctx->INTVAL()->getText().c_str()),telem);
+    putTypeDecor(ctx, t);
+  } else {
+    visit(ctx->basic_type());
+    putTypeDecor(ctx, getTypeDecor(ctx->basic_type()));
+  }
+
+  return 0;
+  DEBUG_EXIT();
 }
 
 // antlrcpp::Any SymbolsVisitor::visitStatements(AslParser::StatementsContext *ctx) {
