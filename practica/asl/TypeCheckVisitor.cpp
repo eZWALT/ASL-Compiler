@@ -39,7 +39,7 @@
 #include <string>
 
 // uncomment the following line to enable debugging messages with DEBUG*
- //#define DEBUG_BUILD
+//#define DEBUG_BUILD
 #include "../common/debug.h"
 
 // using namespace std;
@@ -312,21 +312,29 @@ antlrcpp::Any TypeCheckVisitor::visitArrayIdent(AslParser::ArrayIdentContext *ct
 
   TypesMgr::TypeId texp = getTypeDecor(ctx->expr());
   TypesMgr::TypeId t = getTypeDecor(ctx->ident());
+  bool isLvalue = getIsLValueDecor(ctx->ident());
+  //si no es error s'inicialitza a 1
+  bool isArray = not Types.isErrorTy(t);
+  TypesMgr::TypeId decoration = t;
 
-  if (not Types.isErrorTy(texp) && not Types.isIntegerTy(texp))
-    Errors.nonIntegerIndexInArrayAccess(ctx->expr());
-
-  if (not Types.isErrorTy(t) && not Types.isArrayTy(t)){
+  if((not Types.isErrorTy(t)) and (not Types.isArrayTy(t))){
+    //decorem el lvalue com error
+    decoration = Types.createErrorTy();     
+    isLvalue = false;
+    isArray = false;
     Errors.nonArrayInArrayAccess(ctx);
-    putTypeDecor(ctx, Types.createErrorTy());  
-  } else {
-    // IDENT [ EXPR ]
-    putTypeDecor(ctx, Types.getArrayElemType(t));
-
   }
 
-  bool b = getIsLValueDecor(ctx->ident());
-  putIsLValueDecor(ctx, b);
+  if ((not Types.isErrorTy(texp)) and (not Types.isIntegerTy(texp))){
+    Errors.nonIntegerIndexInArrayAccess(ctx->expr());    
+  }
+
+  if(isArray){
+    decoration = Types.getArrayElemType(t);
+  }
+
+  putTypeDecor(ctx,decoration);
+  putIsLValueDecor(ctx, isLvalue);
   DEBUG_EXIT();
 
   return 0;
@@ -386,17 +394,16 @@ antlrcpp::Any TypeCheckVisitor::visitArray(AslParser::ArrayContext *ctx)
   TypesMgr::TypeId texp = getTypeDecor(ctx->expr());
   TypesMgr::TypeId t = getTypeDecor(ctx->ident());
 
-  if (not Types.isErrorTy(texp) && not Types.isIntegerTy(texp))
-    Errors.nonIntegerIndexInArrayAccess(ctx->expr());
+  if (not Types.isErrorTy(texp) && not Types.isIntegerTy(texp)){
+        Errors.nonIntegerIndexInArrayAccess(ctx->expr());
+  }
 
   if (not Types.isErrorTy(t) && not Types.isArrayTy(t)){
     Errors.nonArrayInArrayAccess(ctx);
     putTypeDecor(ctx, Types.createErrorTy());  
-  } else {
+  } 
 
-    putTypeDecor(ctx, Types.getArrayElemType(t));
-
-  }
+  if(Types.isArrayTy(t)) putTypeDecor(ctx, Types.getArrayElemType(t));
 
   bool b = getIsLValueDecor(ctx->ident());
   putIsLValueDecor(ctx, b);
