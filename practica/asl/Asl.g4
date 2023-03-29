@@ -38,7 +38,7 @@ program : function+ EOF
 
 // A function has a name, a list of parameters and a list of statements
 function
-        : FUNC ID '(' (ID ':' type (',' ID ':' type)*)?')' (':' type)? declarations statements ENDFUNC
+        : FUNC ID '(' (ID ':' type (',' ID ':' type)*)?')' (':' basic_type)? declarations statements ENDFUNC
         ;
 
 declarations
@@ -80,7 +80,7 @@ statement
         | WRITE expr ';'                      # writeExpr
           // Write a string
         | WRITE STRING ';'                    # writeString
-        | RETURN (expr)? ';'                          # return
+        | RETURN (expr)? ';'                  # return
         ;
 
 // Grammar for left expressions (l-values in C++)

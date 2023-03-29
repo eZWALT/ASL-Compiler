@@ -39,7 +39,7 @@
 #include <string>
 
 // uncomment the following line to enable debugging messages with DEBUG*
-// #define DEBUG_BUILD
+ //#define DEBUG_BUILD
 #include "../common/debug.h"
 
 // using namespace std;
@@ -86,11 +86,21 @@ antlrcpp::Any TypeCheckVisitor::visitFunction(AslParser::FunctionContext *ctx) {
   DEBUG_ENTER();
   SymTable::ScopeId sc = getScopeDecor(ctx);
   Symbols.pushThisScope(sc);
-  // Symbols.print();
-  TypesMgr::TypeId tf = getTypeDecor(ctx);
-  //std::cout << "Reported type of function is " << Types.to_string(tf) << std::endl;
 
-  setCurrentFunctionTy(tf);
+  //we have to create the function type (return and parameters)
+  TypesMgr::TypeId typeFunction = Types.createVoidTy();
+  if(ctx->basic_type()){
+    visit(ctx->basic_type());
+    typeFunction = getTypeDecor(ctx->basic_type());
+    //std::cout << Types.to_string(typeFunction) << std::endl;
+  }
+  //parameters aren't needed at all, have fun programming them
+  std::vector<TypesMgr::TypeId> lparams = {};
+  
+  typeFunction = Types.createFunctionTy(lparams,typeFunction);
+  setCurrentFunctionTy(typeFunction);
+  //std::cout << "Reported type of function is " << Types.to_string(typeFunction) << std::endl;
+
 
   visit(ctx->statements());
   Symbols.popScope();
@@ -159,14 +169,31 @@ antlrcpp::Any TypeCheckVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
 
 antlrcpp::Any TypeCheckVisitor::visitReturn(AslParser::ReturnContext *ctx) {
   DEBUG_ENTER();
+  TypesMgr::TypeId functionID = getCurrentFunctionTy();
+
   if (ctx->expr()){
     visit(ctx->expr());
-    TypesMgr::TypeId t = getTypeDecor(ctx->expr());
+    TypesMgr::TypeId typeExpr = getTypeDecor(ctx->expr());
+    TypesMgr::TypeId typeRet = Types.getFuncReturnType(functionID);
+    //std::cout << Types.to_string(typeRet) << std::endl;
 
     //std::cout << "Return type is " << Types.to_string(t) << " and function type is " << Types.to_string(getCurrentFunctionTy()) << std::endl;
 
-    if ((not Types.isErrorTy(t)) and (not Types.equalTypes(getCurrentFunctionTy(), t))) 
-      Errors.incompatibleReturn(ctx->RETURN());  }
+    //checking if its a void function with a return value or if its a function with different return types (Thanks to type coercion floats can be written as ints)
+    if ((not Types.isErrorTy(typeExpr)) and (Types.isVoidFunction(functionID))){
+      Errors.incompatibleReturn(ctx->RETURN());  
+    } 
+
+    else if( (not Types.isErrorTy(typeExpr)) and (not Types.equalTypes(typeRet, typeExpr))){
+      
+      if(not (Types.isFloatTy(typeRet) and Types.isIntegerTy(typeExpr))){
+        Errors.incompatibleReturn(ctx->RETURN());
+      } 
+    }
+  }
+  else if(not Types.isVoidFunction(functionID)){
+    Errors.incompatibleReturn(ctx->RETURN());
+  } 
   
   DEBUG_EXIT();
   return 0;
@@ -518,6 +545,7 @@ antlrcpp::Any TypeCheckVisitor::visitIdent(AslParser::IdentContext *ctx) {
   DEBUG_EXIT();
   return 0;
 }
+
 
 
 // Getters for the necessary tree node atributes:

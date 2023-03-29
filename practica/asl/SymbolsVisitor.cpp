@@ -105,10 +105,10 @@ antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
 
   TypesMgr::TypeId tRet;
 
-  if (ctx->ID().size() == ctx->type().size()){
-    visit(ctx->type(ctx->type().size()-1));
+  if (ctx->basic_type()){
+    visit(ctx->basic_type());
 
-    tRet = getTypeDecor(ctx->type(ctx->type().size()-1));
+    tRet = getTypeDecor(ctx->basic_type());
   } else tRet = Types.createVoidTy();
 
   //std::cout << "Setting type decor to " << Types.to_string(tRet) << std::endl;
