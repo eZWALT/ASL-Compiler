@@ -246,7 +246,13 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
 
     //int NumArgs = ctx->expr().size();
     std::size_t NumParameters = Types.getNumOfParameters(t);
-    if (paramVect.size() != NumParameters) Errors.numberOfParameters(ctx->ident());
+    if (paramVect.size() != NumParameters){
+      Errors.numberOfParameters(ctx->ident());
+      
+      putIsLValueDecor(ctx, false);
+      DEBUG_EXIT();
+      return 0;
+    } 
     //It may happen that an integer value is given to feed a float parameter anyway, but no any other type mismatch is correct
     auto types = Types.getFuncParamsTypes(t);
 
@@ -394,7 +400,13 @@ antlrcpp::Any TypeCheckVisitor::visitCall(AslParser::CallContext *ctx)
 
     //int NumArgs = ctx->expr().size();
     std::size_t NumParameters = Types.getNumOfParameters(t);
-    if (paramVect.size() != NumParameters) Errors.numberOfParameters(ctx->ident());
+    if (paramVect.size() != NumParameters){
+      Errors.numberOfParameters(ctx->ident());
+      
+      putIsLValueDecor(ctx, false);
+      DEBUG_EXIT();
+      return 0;
+    } 
     //It may happen that an integer value is given to feed a float parameter anyway, but no any other type mismatch is correct
     auto types = Types.getFuncParamsTypes(t);
 
