@@ -219,6 +219,21 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   visit(ctx->ident());
   TypesMgr::TypeId t = getTypeDecor(ctx->ident());
 
+  //std::cout << "Visiting call to function " << ctx->ident()->getText() << std::endl;
+
+  // Vector of the parameters of the function call (even if the function doesn't exist)
+  using std::vector;
+  vector<TypesMgr::TypeId> paramVect;
+  paramVect.resize(static_cast<int> (ctx->expr().size()));
+
+  for (uint i = 0; i < paramVect.size(); ++i){
+    visit(ctx->expr(i));
+    TypesMgr::TypeId texp = getTypeDecor(ctx->expr(i));
+
+    //std::cout << "Parameter #" << i << " has type " << Types.to_string(texp) << std::endl;
+    paramVect[i] = texp;
+  }
+
   if (Types.isErrorTy(t)){
     putTypeDecor(ctx, Types.createErrorTy());
   }
@@ -227,22 +242,25 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
     TypesMgr::TypeId tRet = Symbols.getType(ctx->ident()->getText());
     putTypeDecor(ctx, Types.getFuncReturnType(tRet));
 
-    int NumArgs = ctx->expr().size();
+    //std::cout << "Call to function " << ctx->ident()->getText() << " has type " << Types.to_string(tRet) << std::endl;
+
+    //int NumArgs = ctx->expr().size();
     std::size_t NumParameters = Types.getNumOfParameters(t);
-    if (static_cast<int>(NumArgs) != NumParameters) Errors.numberOfParameters(ctx->ident());
-    //Checking for a mismatch in the types of the parameters given by the call
+    if (paramVect.size() != NumParameters) Errors.numberOfParameters(ctx->ident());
     //It may happen that an integer value is given to feed a float parameter anyway, but no any other type mismatch is correct
     auto types = Types.getFuncParamsTypes(t);
 
-    for(unsigned int i = 0; i < types.size(); ++i){
-      visit(ctx->expr(i));
-      TypesMgr::TypeId texp = getTypeDecor(ctx->expr(i));
+    for(unsigned int i = 0; i < paramVect.size(); ++i){
+      //visit(ctx->expr(i));
+      //TypesMgr::TypeId texp = getTypeDecor(ctx->expr(i));
 
-      if (not Types.equalTypes(texp, types[i]))
+      if (not Types.isErrorTy(paramVect[i]) && not Types.equalTypes(paramVect[i], types[i]))
       {
         Errors.incompatibleParameter(ctx->expr(i), i+1, ctx);
       }
     }
+
+
 
   }
 
@@ -349,6 +367,21 @@ antlrcpp::Any TypeCheckVisitor::visitCall(AslParser::CallContext *ctx)
   visit(ctx->ident());
   TypesMgr::TypeId t = getTypeDecor(ctx->ident());
 
+  //std::cout << "Visiting call to function " << ctx->ident()->getText() << std::endl;
+
+  // Vector of the parameters of the function call (even if the function doesn't exist)
+  using std::vector;
+  vector<TypesMgr::TypeId> paramVect;
+  paramVect.resize(static_cast<int> (ctx->expr().size()));
+
+  for (uint i = 0; i < paramVect.size(); ++i){
+    visit(ctx->expr(i));
+    TypesMgr::TypeId texp = getTypeDecor(ctx->expr(i));
+
+    //std::cout << "Parameter #" << i << " has type " << Types.to_string(texp) << std::endl;
+    paramVect[i] = texp;
+  }
+
   if (Types.isErrorTy(t)){
     putTypeDecor(ctx, Types.createErrorTy());
   }
@@ -357,18 +390,19 @@ antlrcpp::Any TypeCheckVisitor::visitCall(AslParser::CallContext *ctx)
     TypesMgr::TypeId tRet = Symbols.getType(ctx->ident()->getText());
     putTypeDecor(ctx, Types.getFuncReturnType(tRet));
 
-    int NumArgs = ctx->expr().size();
+    //std::cout << "Call to function " << ctx->ident()->getText() << " has type " << Types.to_string(tRet) << std::endl;
+
+    //int NumArgs = ctx->expr().size();
     std::size_t NumParameters = Types.getNumOfParameters(t);
-    if (static_cast<int>(NumArgs) != NumParameters) Errors.numberOfParameters(ctx->ident());
-    //Checking for a mismatch in the types of the parameters given by the call
+    if (paramVect.size() != NumParameters) Errors.numberOfParameters(ctx->ident());
     //It may happen that an integer value is given to feed a float parameter anyway, but no any other type mismatch is correct
     auto types = Types.getFuncParamsTypes(t);
 
-    for(unsigned int i = 0; i < types.size(); ++i){
-      visit(ctx->expr(i));
-      TypesMgr::TypeId texp = getTypeDecor(ctx->expr(i));
+    for(unsigned int i = 0; i < paramVect.size(); ++i){
+      //visit(ctx->expr(i));
+      //TypesMgr::TypeId texp = getTypeDecor(ctx->expr(i));
 
-      if (not Types.equalTypes(texp, types[i]))
+      if (not Types.isErrorTy(paramVect[i]) && not Types.equalTypes(paramVect[i], types[i]))
       {
         Errors.incompatibleParameter(ctx->expr(i), i+1, ctx);
       }
@@ -467,7 +501,10 @@ antlrcpp::Any TypeCheckVisitor::visitUnary(AslParser::UnaryContext *ctx)
       Errors.incompatibleOperator(ctx->op);
   }
 
-  putTypeDecor(ctx, t);
+  if (ctx->NOT()) putTypeDecor(ctx, Types.createBooleanTy());
+  else if ((ctx->PLUS() || ctx->SUB()) && Types.isFloatTy(t))  putTypeDecor(ctx, Types.createFloatTy());
+  else putTypeDecor(ctx, Types.createIntegerTy());
+  
   putIsLValueDecor(ctx, false);
   DEBUG_EXIT();
   return 0;
