@@ -260,9 +260,11 @@ antlrcpp::Any TypeCheckVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
       //visit(ctx->expr(i));
       //TypesMgr::TypeId texp = getTypeDecor(ctx->expr(i));
 
-      if (not Types.isErrorTy(paramVect[i]) && not Types.equalTypes(paramVect[i], types[i]))
+      if (not Types.equalTypes(paramVect[i], types[i]))
       {
-        Errors.incompatibleParameter(ctx->expr(i), i+1, ctx);
+        //if there's a type mismatch, then we gotta check if type coertion can be applied (case of floats)
+        if(not Types.isErrorTy(paramVect[i]) and not(Types.isIntegerTy(paramVect[i]) and Types.isFloatTy(types[i])))
+          Errors.incompatibleParameter(ctx->expr(i), i+1, ctx);
       }
     }
 
@@ -414,9 +416,12 @@ antlrcpp::Any TypeCheckVisitor::visitCall(AslParser::CallContext *ctx)
       //visit(ctx->expr(i));
       //TypesMgr::TypeId texp = getTypeDecor(ctx->expr(i));
 
-      if (not Types.isErrorTy(paramVect[i]) && not Types.equalTypes(paramVect[i], types[i]))
+      //Checking for types mismatch
+      if (not Types.equalTypes(paramVect[i], types[i]))
       {
-        Errors.incompatibleParameter(ctx->expr(i), i+1, ctx);
+        //if there's a type mismatch, then we gotta check if type coertion can be applied (case of floats)
+        if(not Types.isErrorTy(paramVect[i]) and not(Types.isIntegerTy(paramVect[i]) and Types.isFloatTy(types[i])))
+          Errors.incompatibleParameter(ctx->expr(i), i+1, ctx);
       }
     }
 
@@ -476,24 +481,31 @@ antlrcpp::Any TypeCheckVisitor::visitArithmetic(AslParser::ArithmeticContext *ct
   TypesMgr::TypeId t1 = getTypeDecor(ctx->expr(0));
   visit(ctx->expr(1));
   TypesMgr::TypeId t2 = getTypeDecor(ctx->expr(1));
+  TypesMgr::TypeId ret;
 
-
-
-  if (((not Types.isErrorTy(t1)) and (not Types.isNumericTy(t1))) or
-      ((not Types.isErrorTy(t2)) and (not Types.isNumericTy(t2))))
-    Errors.incompatibleOperator(ctx->op);
-
-  // Module operation (%) can only be applied to integer operands. The expected behaviour for negative operands is the same than in C++.
+/*
+    // Module operation (%) can only be applied to integer operands. The expected behaviour for negative operands is the same than in C++.
   if ((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2) || not Types.isIntegerTy(t1)) and (ctx->MOD()))
     Errors.incompatibleOperator(ctx->op);
+*/
+
+  if(ctx->MOD()){
+    if (((not Types.isErrorTy(t1)) and (not Types.isIntegerTy(t1))) or ((not Types.isErrorTy(t2)) and (not Types.isIntegerTy(t2))))
+      Errors.incompatibleOperator(ctx->op);
+    
+    ret = Types.createIntegerTy();
+  } 
+  else{
+    if (((not Types.isErrorTy(t1)) and (not Types.isNumericTy(t1))) or ((not Types.isErrorTy(t2)) and (not Types.isNumericTy(t2))))
+      Errors.incompatibleOperator(ctx->op);
 
 
-  TypesMgr::TypeId r;
+    if (Types.isFloatTy(t1) || Types.isFloatTy(t2)) ret = Types.createFloatTy();
+    else ret = Types.createIntegerTy();
 
-  if (Types.isFloatTy(t1) || Types.isFloatTy(t2)) r = Types.createFloatTy();
-  else r = Types.createIntegerTy();
+  }
 
-  putTypeDecor(ctx, r);
+  putTypeDecor(ctx, ret);
   putIsLValueDecor(ctx, false);
   DEBUG_EXIT();
   return 0;
