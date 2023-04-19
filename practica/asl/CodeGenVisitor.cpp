@@ -204,13 +204,22 @@ antlrcpp::Any CodeGenVisitor::visitWriteString(AslParser::WriteStringContext *ct
   DEBUG_EXIT();
   return code;
 }
-/*
-antlrcpp::Any CodeGenVisitor::visitLeft_expr(AslParser::Left_exprContext *ctx) {
+
+antlrcpp::Any CodeGenVisitor::visitSimpleIdent(AslParser::SimpleIdentContext *ctx){
   DEBUG_ENTER();
   CodeAttribs && codAts = visit(ctx->ident());
   DEBUG_EXIT();
   return codAts;
-}*/
+
+}
+
+antlrcpp::Any CodeGenVisitor::visitArrayIdent(AslParser::ArrayIdentContext *ctx){
+  DEBUG_ENTER();
+  CodeAttribs && codAts = visit(ctx->ident());
+  DEBUG_EXIT();
+  return codAts;
+
+}
 
 antlrcpp::Any CodeGenVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx) {
   DEBUG_ENTER();
