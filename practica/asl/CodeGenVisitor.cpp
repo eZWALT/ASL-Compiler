@@ -224,11 +224,25 @@ antlrcpp::Any CodeGenVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx)
   // TypesMgr::TypeId t1 = getTypeDecor(ctx->expr(0));
   // TypesMgr::TypeId t2 = getTypeDecor(ctx->expr(1));
   // TypesMgr::TypeId  t = getTypeDecor(ctx);
+
   std::string temp = "%"+codeCounters.newTEMP();
-  if (ctx->MUL())
+  if (ctx->MUL()){
     code = code || instruction::MUL(temp, addr1, addr2);
-  else // (ctx->PLUS())
+  }
+  else if(ctx->PLUS()){
     code = code || instruction::ADD(temp, addr1, addr2);
+  }
+  else if(ctx->SUB()){
+    code = code || instruction::SUB(temp,addr1,addr2);
+  }
+  else if(ctx->DIV()){
+    code = code || instruction::DIV(temp,addr1,addr2);
+  }
+  else if(ctx->MOD()){
+    //code = code || instruction::DIV(temp,addr1,addr2);
+    //es preocupara l'alex i el walter del futur 
+  }
+
   CodeAttribs codAts(temp, "", code);
   DEBUG_EXIT();
   return codAts;
