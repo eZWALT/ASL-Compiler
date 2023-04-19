@@ -99,21 +99,32 @@ antlrcpp::Any CodeGenVisitor::visitFunction(AslParser::FunctionContext *ctx) {
 
 antlrcpp::Any CodeGenVisitor::visitDeclarations(AslParser::DeclarationsContext *ctx) {
   DEBUG_ENTER();
-  std::vector<var> lvars;
+  std::vector<var> lvars(0);
+
   for (auto & varDeclCtx : ctx->variable_decl()) {
-    var onevar = visit(varDeclCtx);
-    lvars.push_back(onevar);
+    std::vector<var> onevarlist = visit(varDeclCtx);
+  
+    for(auto & onevar: onevarlist){
+      lvars.push_back(onevar);
+    } 
   }
   DEBUG_EXIT();
   return lvars;
 }
 
+//hi han varis ID, cal visitar tots i retornar la llista de variables amb els identificadors, tipus i mides
 antlrcpp::Any CodeGenVisitor::visitVariable_decl(AslParser::Variable_declContext *ctx) {
   DEBUG_ENTER();
   TypesMgr::TypeId   t1 = getTypeDecor(ctx->type());
-  std::size_t      size = Types.getSizeOfType(t1);
+  std::size_t      size;  Types.getSizeOfType(t1);
+
+
+  std::vector<var> vars;
+  for(auto& varIDS: ctx->ID()){
+    vars.push_back(var{varIDS, t1,size});
+  }
   DEBUG_EXIT();
-  return var{ctx->ID(0)->getText(), Types.to_string(t1), size};
+  return vars;
 }
 
 antlrcpp::Any CodeGenVisitor::visitStatements(AslParser::StatementsContext *ctx) {
