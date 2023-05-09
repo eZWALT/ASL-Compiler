@@ -82,7 +82,9 @@ public:
   antlrcpp::Any visitIdent(AslParser::IdentContext *ctx);
   antlrcpp::Any visitSimpleIdent(AslParser::SimpleIdentContext *ctx);
   antlrcpp::Any visitArrayIdent(AslParser::ArrayIdentContext *ctx);
-
+  antlrcpp::Any visitParen(AslParser::ParenContext *ctx);
+  antlrcpp::Any visitLogic(AslParser::LogicContext *ctx);
+  antlrcpp::Any visitUnary(AslParser::UnaryContext *ctx);
 private:
 
   // Attributes
