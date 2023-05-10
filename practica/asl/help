@@ -1,0 +1,78 @@
+function fact
+  params
+    _result integer
+    n integer
+  endparams
+
+  vars
+    f integer
+  endvars
+
+     %1 = 1
+     f = %1
+  label L11 :
+     %2 = 1
+     %4 = n <= %2
+     %3 = not %4
+     ifFalse %3 goto L21
+     %5 = f * n
+     f = %5
+     %6 = 1
+     %7 = n - %6
+     n = %7
+     goto L11
+  label L21 :
+     _result = f
+     return
+endfunction
+
+function main
+  vars
+    max integer
+    i integer
+    f integer
+    end boolean
+  endvars
+
+     %1 = 0
+     i = %1
+     %2 = 1
+     end = %2
+     readi max
+     %3 = i <= max
+     ifFalse %3 goto if11
+     %5 = 0
+     end = %5
+     goto if21
+  label if11 :
+     %6 = 0
+     i = %6
+  label if21 :
+  label L11 :
+     %7 = not end
+     ifFalse %7 goto L21
+     writei i
+     writes "!="
+     pushparam 
+     pushparam i
+     call fact
+     popparam 
+     popparam %8
+     writei %8
+     writes "\n"
+     %9 = i == max
+     ifFalse %9 goto if12
+     %11 = 1
+     end = %11
+     goto if22
+  label if12 :
+     %12 = 1
+     %13 = i + %12
+     i = %13
+  label if22 :
+     goto L11
+  label L21 :
+     return
+endfunction
+
+
