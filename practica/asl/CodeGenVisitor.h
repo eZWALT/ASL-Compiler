@@ -85,6 +85,7 @@ public:
   antlrcpp::Any visitParen(AslParser::ParenContext *ctx);
   antlrcpp::Any visitLogic(AslParser::LogicContext *ctx);
   antlrcpp::Any visitUnary(AslParser::UnaryContext *ctx);
+  antlrcpp::Any visitWhileStmt(AslParser::WhileStmtContext *ctx);
 private:
 
   // Attributes

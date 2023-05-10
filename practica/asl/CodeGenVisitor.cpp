@@ -163,12 +163,34 @@ antlrcpp::Any CodeGenVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   instructionList &    code1 = codAtsE.code;
   instructionList &&   code2 = visit(ctx->statements(0));
   std::string label = codeCounters.newLabelIF();
+  std::cout << label << std::endl;
   std::string labelEndIf = "endif"+label;
   code = code1 || instruction::FJUMP(addr1, labelEndIf) ||
          code2 || instruction::LABEL(labelEndIf);
   DEBUG_EXIT();
   return code;
 }
+
+antlrcpp::Any CodeGenVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx){
+  DEBUG_ENTER();
+
+  instructionList code;
+  CodeAttribs    && codAtsE = visit(ctx->expr());
+  std::string         addr1 = codAtsE.addr;
+  instructionList   & code1 = codAtsE.code;
+  instructionList  && code2 = visit(ctx->statements());
+
+  std::string         label = codeCounters.newLabelWHILE();
+  std::string          lab1 = "L1" + label;
+  std::string          lab2 = "L2" + label;
+  
+  //code = instruction::LABEL(lab1) || code1 || instruction::FJUMP(addr1, lab2) ||
+  //      code2 || instruction::UJUMP()
+
+  DEBUG_EXIT();
+
+}
+
 
 antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx) {
   DEBUG_ENTER();
@@ -395,11 +417,24 @@ antlrcpp::Any CodeGenVisitor::visitRelational(AslParser::RelationalContext *ctx)
   return codAts;
 }
 
+
 antlrcpp::Any CodeGenVisitor::visitValue(AslParser::ValueContext *ctx) {
   DEBUG_ENTER();
   instructionList code;
   std::string temp = "%"+codeCounters.newTEMP();
-  code = instruction::ILOAD(temp, ctx->getText());
+  
+  if (ctx->INTVAL())
+    code = instruction::ILOAD(temp, ctx->getText());
+  else if (ctx->FLOATVAL())
+    code = instruction::FLOAD(temp, ctx->getText());
+  else if (ctx->CHARVAL())
+    code = instruction::CHLOAD(temp, ctx->getText());
+  else if (ctx->BOOLVAL())
+  {
+    std::string val = ctx->getText();
+    int isTrue = val.compare("true");
+    isTrue == 0 ? code = instruction::ILOAD(temp, "1") : code = instruction::ILOAD(temp, "0");
+  }
   CodeAttribs codAts(temp, "", code);
   DEBUG_EXIT();
   return codAts;
