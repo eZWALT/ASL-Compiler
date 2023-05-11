@@ -256,7 +256,7 @@ antlrcpp::Any CodeGenVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
   if (not ctx->ELSE()){
     instructionList &&   code2 = visit(ctx->statements(0));
     std::string label = codeCounters.newLabelIF();
-    std::string labelEndIf = "endif"+label;
+    std::string labelEndIf = "Endif"+label;
     code = code1 || instruction::FJUMP(addr1, labelEndIf) ||
           code2 || instruction::LABEL(labelEndIf);
 
@@ -265,8 +265,8 @@ antlrcpp::Any CodeGenVisitor::visitIfStmt(AslParser::IfStmtContext *ctx) {
     instructionList &&   code2 = visit(ctx->statements(0));
     instructionList &&   code3 = visit(ctx->statements(1));
     std::string label = codeCounters.newLabelIF();
-    std::string lab1 = "if1"+label;
-    std::string lab2 = "if2"+label;
+    std::string lab1 = "If"+label;
+    std::string lab2 = "Else"+label;
     code = code1 || instruction::FJUMP(addr1, lab1) || code2 ||
           instruction::UJUMP(lab2) || instruction::LABEL(lab1) ||
           code3 || instruction::LABEL(lab2);
@@ -286,8 +286,8 @@ antlrcpp::Any CodeGenVisitor::visitWhileStmt(AslParser::WhileStmtContext *ctx){
   instructionList  && code2 = visit(ctx->statements());
 
   std::string         label = codeCounters.newLabelWHILE();
-  std::string          lab1 = "L1" + label;
-  std::string          lab2 = "L2" + label;
+  std::string          lab1 = "While" + label;
+  std::string          lab2 = "EndWhile" + label;
   
   code = instruction::LABEL(lab1) || code1 || instruction::FJUMP(addr1, lab2) ||
          code2 || instruction::UJUMP(lab1) || instruction::LABEL(lab2);
@@ -431,24 +431,32 @@ antlrcpp::Any CodeGenVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx)
   }
 
   std::string temp = "%"+codeCounters.newTEMP();
-  if (ctx->MUL() && not isFloat)
-    code = code || instruction::MUL(temp, addr1, addr2);
-  else if (ctx->PLUS() && not isFloat)
-    code = code || instruction::ADD(temp, addr1, addr2);
-  else if (ctx->SUB() && not isFloat)
-    code = code || instruction::SUB(temp, addr1, addr2);
-  else if (ctx->DIV() && not isFloat)
-    code = code || instruction::DIV(temp, addr1, addr2);
-  else if (ctx->MUL() )
-    code = code || instruction::FMUL(temp, addr1, addr2);
-  else if (ctx->PLUS())
-    code = code || instruction::FADD(temp, addr1, addr2);
-  else if (ctx->SUB())
-    code = code || instruction::FSUB(temp, addr1, addr2);
-  else if (ctx->DIV())
-    code = code || instruction::FDIV(temp, addr1, addr2);
-  else if (ctx->MOD())
-  {}
+  if (ctx->MUL()){
+
+      if(not isFloat) code = code || instruction::MUL(temp, addr1, addr2);
+      else code = code || instruction::FMUL(temp, addr1, addr2);
+
+  }
+  else if (ctx->PLUS()){
+
+    if(not isFloat) code = code || instruction::ADD(temp, addr1, addr2);
+    else code = code || instruction::FADD(temp, addr1, addr2);
+
+  }
+  else if (ctx->SUB()){
+
+    if(not isFloat) code = code || instruction::SUB(temp, addr1, addr2);
+    else code = code || instruction::FSUB(temp, addr1, addr2);
+
+  }    
+  else if (ctx->DIV()){
+
+    if(not isFloat) code = code || instruction::DIV(temp, addr1, addr2);
+    else code = code || instruction::FDIV(temp, addr1, addr2);
+
+  }
+  else if (ctx->MOD()){}
+
     // CODE FOR MODULAR OPERATION (JP 11)
   CodeAttribs codAts(temp, "", code);
   DEBUG_EXIT();
@@ -510,6 +518,7 @@ antlrcpp::Any CodeGenVisitor::visitRelational(AslParser::RelationalContext *ctx)
     code = code || instruction::LE(temp1, addr1, addr2);
   else if (ctx->LT())
     code = code || instruction::LT(temp1, addr1, addr2);
+    
   CodeAttribs codAts(temp1, "", code);
   DEBUG_EXIT();
   return codAts;
