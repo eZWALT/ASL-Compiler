@@ -115,17 +115,19 @@ antlrcpp::Any CodeGenVisitor::visitFunction(AslParser::FunctionContext *ctx) {
 antlrcpp::Any CodeGenVisitor::visitReturn(AslParser::ReturnContext *ctx){
  DEBUG_ENTER();
   
+  if (not ctx->expr()){
+    instructionList ret = instruction::RETURN();
+    return ret;
+  } 
+
+
   instructionList code;
   CodeAttribs     && codAtsE = visit(ctx->expr());
   std::string           addr1 = codAtsE.addr;
   instructionList &     code1 = codAtsE.code;
 
-  //ALEX CREC QUE CAL POSARLI : RETURN CODE || INSTRUCTION::NOOP(); i no com estaba abans
-  if (not ctx->expr()){
-    return code || instruction::NOOP();
-  } 
 
-  code = code1 || instruction::LOAD("_result", addr1);
+  code = code1 || instruction::LOAD("_result", addr1) || instruction::RETURN();
 
   return code;
 
@@ -227,7 +229,13 @@ antlrcpp::Any CodeGenVisitor::visitVariable_decl(AslParser::Variable_declContext
   std::vector<var> lvars;
 
   for (auto & idCtx : ctx->ID()){
-    lvars.push_back( var{idCtx->getText(), Types.to_string(t1), size} );
+    if (Types.isArrayTy(t1)){
+      std::string telem = Types.to_string(Types.getArrayElemType(t1));
+      
+      lvars.push_back( var{idCtx->getText() , telem, size});
+    }
+    else 
+      lvars.push_back( var{idCtx->getText(), Types.to_string(t1), size} );
   }
   DEBUG_EXIT();
   return lvars;
@@ -261,11 +269,10 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
 
   code = code1 || code2;
 
-
   //there are 2 different cases 
   // 1. a = b where those 2 are arrays
   // 2. a[i] = b where a is an array
-  if(Types.isArrayTy(tid1) and Types.isArrayTy(tid2)){
+  if(offs1 != "" and Types.isArrayTy(tid2)){
 
     std::string labelSTART = "ArrayCpy" + codeCounters.newLabelWHILE();
     std::string labelEND   = "End" + labelEND;
@@ -330,7 +337,7 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
     }
 
     //code needed to load array[i] = expr (IF ITS AN ARRAY)
-    if(Types.isArrayTy(tid1)){
+    if(offs1 != ""){
       code = code || instruction::XLOAD(addr1,offs1,addr2);
     }
     //This is NOT an array
@@ -680,28 +687,28 @@ antlrcpp::Any CodeGenVisitor::visitRelational(AslParser::RelationalContext *ctx)
     std::string addrF1 = addr1;
     std::string addrF2 = addr2;
 
-    if(Types.isFloatTy(t1)){
+    if(not Types.isFloatTy(t1)){
       addrF1 = "%" + codeCounters.newTEMP();
       code = code || instruction::FLOAT(addrF1, addr1);
     }
     
-    if(Types.isFloatTy(t2)){
+    if(not Types.isFloatTy(t2)){
       addrF2 = "%" + codeCounters.newTEMP();
       code = code || instruction::FLOAT(addrF2, addr2);
     }
 
       if (ctx->EQ())
-        code = code || instruction::FEQ(temp1, addr1, addr2);
+        code = code || instruction::FEQ(temp1, addrF1, addrF2);
       else if (ctx->NEQ())
-        code = code || instruction::FEQ(temp2, addr1, addr2) || instruction::NOT(temp1, temp2);
+        code = code || instruction::FEQ(temp2, addrF1, addrF2) || instruction::NOT(temp1, temp2);
       else if (ctx->GE())
-        code = code || instruction::FLT(temp2, addr1, addr2) || instruction::NOT(temp1, temp2);
+        code = code || instruction::FLT(temp2, addrF1, addrF2) || instruction::NOT(temp1, temp2);
       else if (ctx->GT())
-        code = code || instruction::FLE(temp2, addr1, addr2) || instruction::NOT(temp1, temp2);
+        code = code || instruction::FLE(temp2, addrF1, addrF2) || instruction::NOT(temp1, temp2);
       else if (ctx->LE())
-        code = code || instruction::FLE(temp1, addr1, addr2);
+        code = code || instruction::FLE(temp1, addrF1, addrF2);
       else if (ctx->LT())
-        code = code || instruction::FLT(temp1, addr1, addr2);
+        code = code || instruction::FLT(temp1, addrF1, addrF2);
 
 
   }
