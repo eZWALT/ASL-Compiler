@@ -126,7 +126,7 @@ public:
   static instruction FLOAT(const std::string &a1, const std::string &a2);  
   // create new instruction "a1 = a2"
   static instruction LOAD(const std::string &a1, const std::string &a2);
-  // create new instruction "a1 = a2" (where a2 is an integer constant)
+  // create new instruction "a1 = a2" (whereF a2 is an integer constant)
   static instruction ILOAD(const std::string &a1, const std::string &a2);
   // create new instruction "a1 = a2" (where a2 is a character constant)
   static instruction CHLOAD(const std::string &a1, const std::string &a2);

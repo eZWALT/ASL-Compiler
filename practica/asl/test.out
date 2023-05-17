@@ -2,96 +2,131 @@ function f
   params
     _result boolean
     a integer
-    b float
+    f float
   endparams
 
   vars
     x integer
-    y boolean
+    b boolean
     z integer 10
   endvars
 
-     %1 = 9
-     %2 = 67
-     %3 = a + %2
-     z[%1] = %3
-     %4 = 34
-     x = %4
-     %5 = 3
-     %6 = 56
-     %7 = 9
-     %8 = z[%7]
-     %9 = %6 + %8
-     z[%5] = %9
-     %10 = 3
-     %11 = z[%10]
-     %14 = float %11
-     %13 = %14 <=. b
-     %12 = not %13
-     ifFalse %12 goto If1
-     %15 = 78
-     x = %15
-     writef b
+     %1 = 5
+     readi %2
+     z[%1] = %2
+     %3 = 5
+     %4 = z[%3]
+     %5 = 88
+     %6 = float %5
+     %7 = %6 *. f
+     %8 = float %4
+     %9 = %8 -. %7
+     writef %9
+     readi b
+     readf f
+     ifFalse b goto Endif1
+     writes "h\n\tl\\a"
+     %10 = -. f
+     %11 = -. %10
+     %12 = -. %11
+     writef %12
      writes "\n"
-     goto Else1
-  label If1 :
-     %16 = 99
-     x = %16
-  label Else1 :
-     %17 = 3
-     %18 = z[%17]
-     writei %18
-     writes "\n"
-     %19 = 1
-     _result = %19
+  label Endif1 :
+     %13 = 1
+     _result = %13
      return
      return
 endfunction
 
 function fz
   params
+    _result float
     r integer
+    u float
   endparams
 
+  vars
+    b boolean
+  endvars
+
   label While1 :
-     %1 = 0
-     %3 = r <= %1
+     %1 = 0.01
+     %4 = float r
+     %3 = %4 <=. %1
      %2 = not %3
      ifFalse %2 goto EndWhile1
-     %4 = 1
-     %5 = r - %4
-     r = %5
+     %5 = 1
+     %6 = r - %5
+     r = %6
      goto While1
   label EndWhile1 :
+     %7 = 0
+     %8 = r == %7
+     ifFalse %8 goto Endif1
+     pushparam 
+     %11 = 55555
+     pushparam %11
+     %12 = 5
+     %13 = - %12
+     %14 = 4
+     %15 = %13 / %14
+     %16 = float %15
+     pushparam %16
+     call f
+     popparam 
+     popparam 
+     popparam %10
+     b = %10
+  label Endif1 :
+     %17 = 3
+     %18 = r + %17
+     %19 = float %18
+     %20 = %19 *. u
+     _result = %20
+     return
      return
 endfunction
 
 function main
   vars
     a integer
+    q float
   endvars
 
-     pushparam 
-     %2 = 3
-     pushparam %2
-     %3 = 2
-     %4 = float %3
-     pushparam %4
-     call f
-     popparam 
-     popparam 
-     popparam %1
-     ifFalse %1 goto Endif1
-     %5 = 3.7
-     %6 = float a
-     %7 = %6 +. %5
-     %8 = 4
-     %9 = float %8
-     %10 = %7 +. %9
-     writef %10
-     writes "\n"
-  label Endif1 :
-     return
+   %1 = 1
+   %2 = - %1
+   %3 = float %2
+   q = %3
+   pushparam 
+   %5 = 3
+   %6 = 4
+   %7 = %5 + %6
+   pushparam %7
+   pushparam 
+   %9 = 4444
+   pushparam %9
+   %10 = 3
+   %11 = float %10
+   %12 = q +. %11
+   pushparam %12
+   call fz
+   popparam 
+   popparam 
+   popparam %8
+   pushparam %8
+   call fz
+   popparam 
+   popparam 
+   popparam %4
+   q = %4
+   %13 = 3.7
+   %14 = q +. %13
+   %15 = 4
+   %16 = float %15
+   %17 = %14 +. %16
+   writef %17
+   writes "\n"
+   return
 endfunction
 
 
