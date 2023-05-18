@@ -101,7 +101,10 @@ antlrcpp::Any CodeGenVisitor::visitFunction(AslParser::FunctionContext *ctx) {
     visit(ctx->type(i-1));
     TypesMgr::TypeId t = getTypeDecor(ctx->type(i-1));
 
-    subr.add_param(ctx->ID(i)->getText(),Types.to_string(t), false); // Podra ser una array (true)
+    if(Types.isArrayTy(t)){
+      subr.add_param(ctx->ID(i)->getText(),Types.to_string(Types.getArrayElemType(t)), true); // Podra ser una array (true)
+    }
+    else subr.add_param(ctx->ID(i)->getText(),Types.to_string(t), false); // Podra ser una array (true)
   }
 
   instructionList && code = visit(ctx->statements());
@@ -229,7 +232,8 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx){
 
 
   DEBUG_EXIT();
-  return code;
+  return code;  
+
 }
 
 
@@ -363,6 +367,7 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
 
     //code needed to load array[i] = expr (IF ITS AN ARRAY)
     if(offs1 != ""){
+      //std::cout << "IM A FUCKING ARRAY HELP ME: " + addr1 + " " + offs1 + " " + addr2 << std::endl;
       code = code || instruction::XLOAD(addr1,offs1,addr2);
     }
     //This is NOT an array
