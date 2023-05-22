@@ -654,10 +654,8 @@ antlrcpp::Any CodeGenVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx)
     else code = code || instruction::FDIV(temp, addr1, addr2);
 
   }
-  else if (ctx->MOD()){
-    std::string yo = "%" + codeCounters.newTEMP();
-    code = code || instruction::DIV(yo, addr1, addr2) || instruction::MUL(yo, yo, addr2) || instruction::SUB(temp, addr1, addr2);
-  }
+  else if (ctx->MOD()) 
+    code = code || instruction::DIV(temp, addr1, addr2) || instruction::MUL(temp, temp, addr2) || instruction::SUB(temp, addr1, temp);
 
   CodeAttribs codAts(temp, "", code);
   DEBUG_EXIT();
@@ -775,8 +773,8 @@ antlrcpp::Any CodeGenVisitor::visitValue(AslParser::ValueContext *ctx) {
     code = instruction::ILOAD(temp, ctx->getText());
   else if (ctx->FLOATVAL())
     code = instruction::FLOAD(temp, ctx->getText());
-  else if (ctx->CHARVAL())
-    code = instruction::CHLOAD(temp, ctx->getText());
+  else if (ctx->CHARVAL()) // We must remove the first and last char, since they are opening and closing (')
+    code = instruction::CHLOAD(temp, ctx->getText().substr(1, ctx->getText().size()-2));
   else if (ctx->BOOLVAL())
   {
     std::string val = ctx->getText();
