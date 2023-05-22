@@ -517,14 +517,12 @@ antlrcpp::Any CodeGenVisitor::visitArray(AslParser::ArrayContext *ctx){
   instructionList && code = codeID || codeIdx;
   std::string value = "%" + codeCounters.newTEMP();
 
-  //now we gotta check if the array load is done in a local var or in the pointer of a function paramter
-  if(Symbols.isLocalVarClass(addrID)){
-    code = code || instruction::LOADX(value,addrID,addrIdx);
-  }
-  else if(Symbols.isParameterClass(addrID)){
+  // Check if array is local or is passed as a parameter by reference.
+  if(Symbols.isParameterClass(ctx->ident()->getText())){
     std::string temp = "%" + codeCounters.newTEMP();
     code = code || instruction::LOAD(temp,addrID) || instruction::LOADX(value,temp,addrIdx);
   }
+  else code = code || instruction::LOADX(value,addrID,addrIdx);
 
   CodeAttribs  codAts(value,"",code);
   DEBUG_EXIT();  
