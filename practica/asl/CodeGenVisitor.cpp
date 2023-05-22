@@ -654,9 +654,11 @@ antlrcpp::Any CodeGenVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx)
     else code = code || instruction::FDIV(temp, addr1, addr2);
 
   }
-  else if (ctx->MOD()){}
+  else if (ctx->MOD()){
+    std::string yo = "%" + codeCounters.newTEMP();
+    code = code || instruction::DIV(yo, addr1, addr2) || instruction::MUL(yo, yo, addr2) || instruction::SUB(temp, addr1, addr2);
+  }
 
-    // CODE FOR MODULAR OPERATION (JP 11)
   CodeAttribs codAts(temp, "", code);
   DEBUG_EXIT();
   //std::cout << "Exiting arithmetic of " << ctx->getText() << std::endl;
