@@ -97,7 +97,7 @@ antlrcpp::Any SymbolsVisitor::visitFunction(AslParser::FunctionContext *ctx) {
     if (Symbols.findInCurrentScope(ident)) Errors.declaredIdent(ctx->ID(i));
     else {
       TypesMgr::TypeId ti = getTypeDecor(ctx->type(i-1));
-      Symbols.addLocalVar(ident, ti);
+      Symbols.addParameter(ident, ti);
       //std::cout << "To parameter " << ident << " setting type " << Types.to_string(ti) << std::endl;
       lParamsTy.push_back(ti);
     }
