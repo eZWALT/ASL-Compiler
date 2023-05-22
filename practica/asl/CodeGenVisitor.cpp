@@ -298,9 +298,7 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
 
   code = code1 || code2;
 
-  //there are 2 different cases 
-  // 1. a = b where those 2 are arrays
-  // 2. a[i] = b where a is an array
+  // DE MOMENT MAI ENTREM EN AQUEST IF
   if(offs1 != "" and Types.isArrayTy(tid2)){
 
     std::string labelSTART = "ArrayCpy" + codeCounters.newLabelWHILE();
@@ -357,7 +355,7 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
   }
   else{
 
-    //float arrray, if the expr is an integer a cast is needed
+    // Coerció de tipus sobre TID2 Int -> Float
     if(Types.isFloatTy(tid1) and Types.isIntegerTy(tid2)){
 
       std::string tempF = "%" + codeCounters.newTEMP();
@@ -365,15 +363,11 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
       addr2 = tempF;
     }
 
-    //code needed to load array[i] = expr (IF ITS AN ARRAY)
-    if(offs1 != ""){
-      //std::cout << "IM A FUCKING ARRAY HELP ME: " + addr1 + " " + offs1 + " " + addr2 << std::endl;
-      code = code || instruction::XLOAD(addr1,offs1,addr2);
-    }
-    //This is NOT an array
-    else{
-      code = code || instruction::LOAD(addr1,addr2);
-    }
+    // A[i] = B on A és una array
+    if(offs1 != "") code = code || instruction::XLOAD(addr1,offs1,addr2);
+    // A = B on A, B no són arrays
+    else code = code || instruction::LOAD(addr1, addr2);
+    
 
   }
   DEBUG_EXIT();
@@ -551,9 +545,9 @@ antlrcpp::Any CodeGenVisitor::visitArrayIdent(AslParser::ArrayIdentContext *ctx)
   CodeAttribs && codAtIndex = visit(ctx->expr());
   offID = codAtIndex.addr;
   code = code || codAtIndex.code;
-
+  //std::cout << "This is an arrayIdent (left_expr) " << ctx->getText() << std::endl;
   //if this is a pointer to an array (a function paramter) then a load is needed to have the actual adress of that array
-  if(Symbols.isParameterClass(addrID)){
+  if(Symbols.isParameterClass(ctx->ident()->getText())){
     std::string temp = "%" + codeCounters.newTEMP();
     code = code || instruction::LOAD(temp,addrID);
     addrID = temp;

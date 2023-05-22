@@ -1,130 +1,50 @@
 function f
   params
-    _result boolean
-    a integer
-    f float
+    a float array
   endparams
 
-  vars
-    x integer
-    b boolean
-    z integer 10
-  endvars
-
-     %1 = 5
-     readi %2
-     z[%1] = %2
-     %3 = 5
-     %4 = z[%3]
-     %5 = 88
-     %6 = float %5
-     %7 = %6 *. f
-     %8 = float %4
-     %9 = %8 -. %7
-     writef %9
-     readi b
-     readf f
-     ifFalse b goto Endif1
-     writes "h\n\tl\\a"
-     %10 = -. f
-     %11 = -. %10
-     %12 = -. %11
-     writef %12
-     writes "\n"
-  label Endif1 :
-     %13 = 1
-     _result = %13
-     return
-     return
-endfunction
-
-function fz
-  params
-    _result float
-    r integer
-    u float
-  endparams
-
-  vars
-    b boolean
-  endvars
-
-  label While1 :
-     %1 = 0.01
-     %4 = float r
-     %3 = %4 <=. %1
-     %2 = not %3
-     ifFalse %2 goto EndWhile1
-     %5 = 1
-     %6 = r - %5
-     r = %6
-     goto While1
-  label EndWhile1 :
-     %7 = 0
-     %8 = r == %7
-     ifFalse %8 goto Endif1
-     pushparam 
-     %11 = 55555
-     pushparam %11
-     %12 = 5
-     %13 = - %12
-     %14 = 4
-     %15 = %13 / %14
-     %16 = float %15
-     pushparam %16
-     call f
-     popparam 
-     popparam 
-     popparam %10
-     b = %10
-  label Endif1 :
-     %17 = 3
-     %18 = r + %17
-     %19 = float %18
-     %20 = %19 *. u
-     _result = %20
-     return
-     return
+   %1 = 5
+   %2 = 5
+   %3 = a[%2]
+   %4 = 10
+   %5 = float %4
+   %6 = %3 *. %5
+   a[%1] = %6
+   return
 endfunction
 
 function main
   vars
-    a integer
-    q float
+    b float 10
+    c float 10
   endvars
 
-   %1 = 1
-   %2 = - %1
-   %3 = float %2
-   q = %3
-   pushparam 
-   %5 = 3
-   %6 = 4
-   %7 = %5 + %6
-   pushparam %7
-   pushparam 
-   %9 = 4444
-   pushparam %9
-   %10 = 3
-   %11 = float %10
-   %12 = q +. %11
-   pushparam %12
-   call fz
+   %1 = 5
+   readf %2
+   b[%1] = %2
+   %3 = 7
+   %4 = 5
+   %5 = b[%4]
+   c[%3] = %5
+   %6 = 5
+   %7 = b[%6]
+   writef %7
+   writes "\n"
+   %8 = 7
+   %9 = c[%8]
+   writef %9
+   writes "\n"
+   %10 = &b
+   pushparam %10
+   call f
    popparam 
-   popparam 
-   popparam %8
-   pushparam %8
-   call fz
-   popparam 
-   popparam 
-   popparam %4
-   q = %4
-   %13 = 3.7
-   %14 = q +. %13
-   %15 = 4
-   %16 = float %15
-   %17 = %14 +. %16
-   writef %17
+   %11 = 5
+   %12 = b[%11]
+   writef %12
+   writes "\n"
+   %13 = 7
+   %14 = c[%13]
+   writef %14
    writes "\n"
    return
 endfunction
