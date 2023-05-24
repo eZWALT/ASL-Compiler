@@ -146,6 +146,7 @@ antlrcpp::Any CodeGenVisitor::visitCall(AslParser::CallContext *ctx){
 
   code = instruction::PUSH();
 
+
   uint i = 0;
   for (auto & exprCtx : ctx->expr()){
     CodeAttribs && codAts = visit(exprCtx);
@@ -155,13 +156,17 @@ antlrcpp::Any CodeGenVisitor::visitCall(AslParser::CallContext *ctx){
 
     //type coertion for floats and array parameters load
     TypesMgr::TypeId tparam = getTypeDecor(exprCtx);
+    //std::cout << ctx->getText() << "  " << Types.to_string(tparam) << std::endl; 
+
+
     std::string tempAddr = addr;
     if(Types.isFloatTy(typesParams[i]) and Types.isIntegerTy(tparam)){
       tempAddr = "%" + codeCounters.newTEMP();
       code1 = code1 || instruction::FLOAT(tempAddr,addr);
       addr = tempAddr;
     }
-    else if(Types.isArrayTy(tparam)){
+    else if(Types.isArrayTy(tparam) and not Symbols.isParameterClass(addr)){
+
       tempAddr = "%" + codeCounters.newTEMP();
       code1 = code1 || instruction::ALOAD(tempAddr, addr);
       addr = tempAddr;
@@ -203,13 +208,15 @@ antlrcpp::Any CodeGenVisitor::visitProcCall(AslParser::ProcCallContext *ctx){
 
     TypesMgr::TypeId tparam = getTypeDecor(exprCtx);
     std::string temp = addr;
+    //std::cout << ctx->getText() << "  " << Types.to_string(tparam) << std::endl; 
+
 
     if(Types.isFloatTy(typesParams[i]) and Types.isIntegerTy(tparam)){
       temp = "%" + codeCounters.newTEMP();
       code1 = code1 || instruction::FLOAT(temp,addr);
       addr = temp;
     }
-    else if(Types.isArrayTy(tparam)){
+    else if(Types.isArrayTy(tparam) and not Symbols.isParameterClass(addr)){
       temp = "%" + codeCounters.newTEMP();
       code1 = code1 || instruction::ALOAD(temp, addr);
       addr = temp;
@@ -296,7 +303,7 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
   instructionList &     code2 = codAtsE2.code;
   TypesMgr::TypeId tid2 = getTypeDecor(ctx->expr());
 
-  //DEBUGGING
+  
   //std::cout << ctx->getText() << "        " << Types.to_string(tid1) <<  "     " << Types.to_string(tid2) << std::endl;
 
 
