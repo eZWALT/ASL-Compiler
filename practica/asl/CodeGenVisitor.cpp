@@ -312,7 +312,7 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
   if(Types.isArrayTy(tid1) and Types.isArrayTy(tid2)){
 
     std::string labelSTART = "ArrayCpy" + codeCounters.newLabelWHILE();
-    std::string labelEND   = "End" + labelEND;
+    std::string labelEND   = "End" + labelSTART;
 
     //if either one of the arrays is not a local var, then its a paramter (then its a pointer and needs to be loaded)
     if(not Symbols.isLocalVarClass(addr1)){
