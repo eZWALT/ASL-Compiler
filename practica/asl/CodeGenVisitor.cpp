@@ -296,10 +296,13 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
   instructionList &     code2 = codAtsE2.code;
   TypesMgr::TypeId tid2 = getTypeDecor(ctx->expr());
 
+  //DEBUGGING
+  //std::cout << ctx->getText() << "        " << Types.to_string(tid1) <<  "     " << Types.to_string(tid2) << std::endl;
+
+
   code = code1 || code2;
 
-  // DE MOMENT MAI ENTREM EN AQUEST IF
-  if(offs1 != "" and Types.isArrayTy(tid2)){
+  if(Types.isArrayTy(tid1) and Types.isArrayTy(tid2)){
 
     std::string labelSTART = "ArrayCpy" + codeCounters.newLabelWHILE();
     std::string labelEND   = "End" + labelEND;
