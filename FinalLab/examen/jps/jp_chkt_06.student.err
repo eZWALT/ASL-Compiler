@@ -1,0 +1,13 @@
+line 6:11 mismatched input 'matrix' expecting {'int', 'bool', 'float', 'char', 'array'}
+line 6:21 mismatched input ',' expecting ']'
+line 8:8 mismatched input '=' expecting ';'
+line 14:12 mismatched input ',' expecting ']'
+line 14:14 mismatched input ']' expecting ';'
+line 14:25 missing '=' at '+'
+line 15:18 mismatched input ',' expecting ']'
+line 19:18 mismatched input ',' expecting ']'
+line 19:32 mismatched input 'or' expecting '='
+line 22:12 mismatched input ',' expecting ']'
+line 23:12 mismatched input ',' expecting ']'
+line 23:20 mismatched input ',' expecting ']'
+Lexical and/or syntactical errors have been found.

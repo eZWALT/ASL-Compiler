@@ -1,0 +1,6 @@
+line 1:0 mismatched input 'terminate' expecting {<EOF>, 'function'}
+line 1:47 token recognition error at: ''st'
+line 1:61 token recognition error at: ''\n '
+line 2:6 token recognition error at: '('
+line 2:7 token recognition error at: ')'
+There are syntax errors.
