@@ -1,8 +1,0 @@
-line 5:11 mismatched input 'matrix' expecting {'int', 'bool', 'float', 'char', 'array'}
-line 5:21 mismatched input ',' expecting ']'
-line 7:8 mismatched input '=' expecting ';'
-line 13:12 mismatched input ',' expecting ']'
-line 13:14 mismatched input ']' expecting ';'
-line 13:25 missing '=' at '+'
-line 20:12 mismatched input ',' expecting ']'
-Lexical and/or syntactical errors have been found.

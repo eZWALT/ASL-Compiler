@@ -63,6 +63,81 @@ void CodeGenVisitor::setCurrentFunctionTy(TypesMgr::TypeId type) {
   currFunctionType = type;
 }
 
+antlrcpp::Any CodeGenVisitor::visitFactorial(AslParser::FactorialContext *ctx){
+  DEBUG_ENTER();
+  CodeAttribs && codAttribs = visit(ctx->expr());
+
+  std::string addrEXPR = codAttribs.addr;
+  instructionList & code = codAttribs.code;
+
+  std::string r1 = "%"+codeCounters.newTEMP();
+  std::string r2 = "%"+codeCounters.newTEMP();
+  std::string r3 = "%"+codeCounters.newTEMP();
+  std::string r4 = "%"+codeCounters.newTEMP();
+  std::string r5 = "%"+codeCounters.newTEMP();
+
+  std::string labelFACT = "FACTORIAL" + codeCounters.newLabelWHILE();
+  std::string labelEND  = "END" + labelFACT;
+  std::string labelBASE = "BASE" + labelFACT;
+
+
+  /* FACTORIAL 
+     
+     r1 = expr      #result
+     r2 = 0         #constant zero
+     r3 = 1         #constant one
+     r4 = expr - 1  #iterator
+     r5 = r1 < r2  #condition temp (Firstly we check if r1 < 0)
+
+     ifFalse r5 GOTO labelBASE
+      FUCKING HALT
+     
+    labelBASE:
+      r5 = r1 == r2
+      ifFalse r5 GOTO FACTORIALx
+      r1 = r3 
+      GOTO ENDFACTORIALx 
+
+      
+    FACTORIALx:
+      r5 = r3 < r4 
+      ifFalse r5 GOTO ENDFACTORIALx
+      r1 = r1 * r4
+      r4 = r4 - r3 
+      goto FACTORIALx
+    ENDFACTORIALx
+
+    retorna la adreça del temporal r1 
+  
+  */
+
+  //FALTA COMPROVAR SI ES IGUAL A 1 O EL BUCLE BAIXARLO A INDEX 1
+  code = code || instruction::LOAD(r1, addrEXPR)
+              || instruction::ILOAD(r2, "0")
+              || instruction::ILOAD(r3, "1")
+              || instruction::SUB(r4, r1, r3)
+              || instruction::LT(r5, r1,r2)
+              || instruction::FJUMP(r5, labelBASE)
+              || instruction::HALT(code::INVALID_INTEGER_OPERAND)
+              || instruction::LABEL(labelBASE)
+              || instruction::EQ(r5,r1,r2)
+              || instruction::FJUMP(r5, labelFACT)
+              || instruction::LOAD(r1,r3)
+              || instruction::UJUMP(labelEND) 
+              || instruction::LABEL(labelFACT)
+              || instruction::LT(r5,r3,r4)
+              || instruction::FJUMP(r5, labelEND)
+              || instruction::MUL(r1,r1,r4)
+              || instruction::SUB(r4,r4,r3)
+              || instruction::UJUMP(labelFACT)
+              || instruction::LABEL(labelEND)
+              ;
+
+  CodeAttribs RESULT(r1, "", code);
+  return RESULT;
+}
+
+
 // Methods to visit each kind of node:
 //
 antlrcpp::Any CodeGenVisitor::visitProgram(AslParser::ProgramContext *ctx) {
@@ -272,7 +347,7 @@ antlrcpp::Any CodeGenVisitor::visitVariable_decl(AslParser::Variable_declContext
     }
     else if(Types.isMatrixTy(t1)){
       std::string telem = Types.to_string(Types.getMatrixElemType(t1));
-
+      
       lvars.push_back( var{idCtx->getText() , telem, size});
     }
     else 
@@ -314,7 +389,47 @@ antlrcpp::Any CodeGenVisitor::visitAssignStmt(AslParser::AssignStmtContext *ctx)
 
   code = code1 || code2;
 
-  if(Types.isArrayTy(tid1) and Types.isArrayTy(tid2)){
+  if(Types.isMatrixTy(tid1) and Types.isMatrixTy(tid2)){
+    std::string labelSTART = "MatrixCpy" + codeCounters.newLabelWHILE();
+    std::string labelEND   = "End" + labelSTART;
+
+      //CHECKING IF A LOAD IS NEEDED ON THE MATRICES
+      if(not Symbols.isLocalVarClass(addr1)){
+      std::string R7 = "%" + codeCounters.newTEMP();
+      code = code || instruction::LOAD(R7,addr1);
+      addr1 = R7;
+      }
+      if(not Symbols.isLocalVarClass(addr2)){
+      std::string R6 = "%" + codeCounters.newTEMP();
+      code = code || instruction::LOAD(R6,addr2);
+      addr2 = R6;
+      }
+
+      //By precondition both matrices have the same dimensions N * M 
+      std::string numElements = std::to_string(Types.getMatrixSize(tid1)-1);
+
+      std::string constantOne = "%" + codeCounters.newTEMP();
+      std::string constantZero = "%" + codeCounters.newTEMP();
+      std::string iTemp = "%" + codeCounters.newTEMP();
+      std::string condTemp = "%" + codeCounters.newTEMP();
+      std::string elemTemp = "%" + codeCounters.newTEMP();
+
+
+      code = code || instruction::LOAD(iTemp, numElements)
+                  || instruction::ILOAD(constantZero, "0")
+                  || instruction::ILOAD(constantOne, "1" )
+                  || instruction::LABEL(labelSTART)
+                  || instruction::LE(condTemp, constantZero, iTemp)
+                  || instruction::FJUMP(condTemp, labelEND)
+                  || instruction::LOADX(elemTemp, addr2, iTemp)
+                  || instruction::XLOAD(addr1, iTemp, elemTemp)
+                  || instruction::SUB(iTemp, iTemp, constantOne)
+                  || instruction::UJUMP(labelSTART)
+                  || instruction::LABEL(labelEND);
+
+
+  }
+  else if(Types.isArrayTy(tid1) and Types.isArrayTy(tid2)){
 
     std::string labelSTART = "ArrayCpy" + codeCounters.newLabelWHILE();
     std::string labelEND   = "End" + labelSTART;
@@ -544,6 +659,90 @@ antlrcpp::Any CodeGenVisitor::visitArray(AslParser::ArrayContext *ctx){
   return codAts;
 }
 
+antlrcpp::Any CodeGenVisitor::visitMatrix(AslParser::MatrixContext *ctx){
+    DEBUG_ENTER();
+  CodeAttribs && codAtID = visit(ctx->ident());
+  std::string addrID = codAtID.addr;
+  instructionList & codeID = codAtID.code;
+  TypesMgr::TypeId MatrixType = getTypeDecor(ctx->ident());
+  std::string numCols = std::to_string(Types.getMatrixCols(MatrixType));
+  std::string numRows = std::to_string(Types.getMatrixRows(MatrixType));
+
+
+  CodeAttribs && codAtIdx1 = visit(ctx->expr(0));
+  std::string addrIdx1 = codAtIdx1.addr;
+  instructionList & codeIdx1 = codAtIdx1.code;
+  //TypesMgr::TypeId IndexType = getTypeDecor(ctx->expr(0));
+
+  CodeAttribs && codAtIdx2 = visit(ctx->expr(1));
+  std::string addrIdx2 = codAtIdx2.addr;
+  instructionList & codeIdx2 = codAtIdx2.code;
+  //TypesMgr::TypeId IndexType = getTypeDecor(ctx->expr(1));
+  instructionList && code = codeID || codeIdx1 || codeIdx2 ;
+
+  //WE ARE GOING TO CHECK IF THE INDEX IS OUT OF BOUNDS AND ABORT
+  /*
+    tempCols = SIZEOF(cols)
+    tempRows = SIZEOF(rows)
+    tempBool = addrIdx1 < tempRows 
+
+    ifFalse tempBool GOTO DEATH
+    tempBool = addrIdx2 < tempCols 
+    ifFalse tempBool GOTO DEATH
+    GOTO ALIVE
+
+    DEATH: HALT!
+    ALIVE:
+    
+  */
+  std::string label = codeCounters.newLabelIF();
+  std::string labelDEATH = "DEATH" + label;
+  std::string labelALIVE = "ALIVE" + label;
+  std::string tempCols = "%" + codeCounters.newTEMP();
+  std::string tempRows = "%" + codeCounters.newTEMP();
+  std::string tempBool = "%" + codeCounters.newTEMP(); 
+
+  code = code || instruction::ILOAD(tempCols, numCols) 
+              || instruction::ILOAD(tempRows, numRows)
+              || instruction::LT(tempBool, addrIdx1, tempRows)
+              || instruction::FJUMP(tempBool, labelDEATH)
+              || instruction::LT(tempBool, addrIdx2, tempCols)
+              || instruction::FJUMP(tempBool, labelDEATH)
+              || instruction::UJUMP(labelALIVE) 
+              || instruction::LABEL(labelDEATH) 
+              || instruction::HALT(code::INDEX_OUT_OF_RANGE)
+              || instruction::LABEL(labelALIVE)
+              ;
+
+  std::string value = "%" + codeCounters.newTEMP();
+  // Check if array is local or is passed as a parameter by reference.
+  if(Symbols.isParameterClass(ctx->ident()->getText())){
+    std::string tempAddress = "%" + codeCounters.newTEMP();
+    std::string tempMult = "%" + codeCounters.newTEMP();
+    std::string tempCols = "%" + codeCounters.newTEMP();
+    
+
+    code = code || instruction::LOAD(tempAddress,addrID) 
+                || instruction::ILOAD(tempCols, numCols)
+                || instruction::MUL(tempMult, addrIdx1, tempCols)
+                || instruction::ADD(tempMult, tempMult, addrIdx2)
+                || instruction::LOADX(value,tempAddress,tempMult);
+  }
+  else {
+    std::string tempMult = "%" + codeCounters.newTEMP();
+    std::string tempCols = "%" + codeCounters.newTEMP();
+
+    code = code     || instruction::ILOAD(tempCols, numCols)
+                    || instruction::MUL(tempMult, addrIdx1, tempCols)
+                    || instruction::ADD(tempMult, tempMult, addrIdx2)
+                    || instruction::LOADX(value,addrID,tempMult);
+  }
+
+  CodeAttribs  codAts(value,"",code);
+  DEBUG_EXIT();  
+  return codAts;
+}
+
 
 // addrID [offID]
 antlrcpp::Any CodeGenVisitor::visitArrayIdent(AslParser::ArrayIdentContext *ctx){
@@ -570,6 +769,60 @@ antlrcpp::Any CodeGenVisitor::visitArrayIdent(AslParser::ArrayIdentContext *ctx)
   DEBUG_EXIT();
   return codAts;
 
+}
+
+antlrcpp::Any CodeGenVisitor::visitMatrixIdent(AslParser::MatrixIdentContext *ctx){
+  DEBUG_ENTER();
+  CodeAttribs && codeAttribID = visit(ctx->ident());
+  std::string addrID = codeAttribID.addr;
+  std::string offID = "";
+  instructionList & codeID = codeAttribID.code;
+  TypesMgr::TypeId TypeMat = getTypeDecor(ctx->ident());
+
+  CodeAttribs && ATexpr1 = visit(ctx->expr(0));
+  std::string expr1Addr = ATexpr1.addr;
+  CodeAttribs && ATexpr2 = visit(ctx->expr(1));
+  std::string expr2Addr = ATexpr2.addr;
+  instructionList && code = codeID || ATexpr1.code || ATexpr2.code;
+
+  std::string numCols = std::to_string(Types.getMatrixCols(TypeMat));
+  std::string numRows = std::to_string(Types.getMatrixRows(TypeMat));
+  std::string label = codeCounters.newLabelIF();
+  std::string labelDEATH = "DEATH" + label;
+  std::string labelALIVE = "ALIVE" + label;
+  std::string tempCols = "%" + codeCounters.newTEMP();
+  std::string tempRows = "%" + codeCounters.newTEMP();
+  std::string tempBool = "%" + codeCounters.newTEMP(); 
+
+  code = code || instruction::ILOAD(tempCols, numCols) 
+              || instruction::ILOAD(tempRows, numRows)
+              || instruction::LT(tempBool, expr1Addr, tempRows)
+              || instruction::FJUMP(tempBool, labelDEATH)
+              || instruction::LT(tempBool, expr2Addr, tempCols)
+              || instruction::FJUMP(tempBool, labelDEATH)
+              || instruction::UJUMP(labelALIVE) 
+              || instruction::LABEL(labelDEATH) 
+              || instruction::HALT(code::INDEX_OUT_OF_RANGE)
+              || instruction::LABEL(labelALIVE)
+              ;
+
+  offID = "%" + codeCounters.newTEMP();
+  code = code || instruction::ILOAD(offID,numCols)
+              || instruction::MUL(offID, offID, expr1Addr)
+              || instruction::ADD(offID, offID, expr2Addr)
+              ;
+  
+
+  if(Symbols.isParameterClass(ctx->ident()->getText())){
+    std::string temp = "%" + codeCounters.newTEMP();
+    code = code || instruction::LOAD(temp,addrID);
+    addrID = temp;
+  }
+
+
+  CodeAttribs codAts(addrID,offID,code);
+  DEBUG_EXIT();
+  return codAts;
 }
 
 antlrcpp::Any CodeGenVisitor::visitParen(AslParser::ParenContext *ctx){
