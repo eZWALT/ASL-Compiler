@@ -81,6 +81,7 @@ statement
           // Write a string
         | WRITE STRING ';'                    # writeString
         | RETURN (expr)? ';'                  # return
+        | MAP ident INTO ident USING ident ';'   #mapStmt
         ;
 
 // Grammar for left expressions (l-values in C++)
@@ -90,9 +91,10 @@ left_expr
         ;
 
 // Grammar for expressions with boolean, relational and aritmetic operators
-expr    :  '(' expr ')'                     # paren 
-        | ident '[' expr ']'                 # array
+expr    : '(' expr ')'                         # paren 
+        | ident '[' expr ']'                  # array
         | ident '(' (expr (',' expr)*)? ')'   # call
+        | expr op=POW expr                  #power 
         | op=(NOT | PLUS | SUB) expr          # unary
         |expr  op=(MUL | DIV | MOD) expr      # arithmetic
         | expr op=(PLUS | SUB) expr           # arithmetic
@@ -118,6 +120,7 @@ SUB       : '-';
 MUL       : '*';
 DIV       : '/';
 MOD       : '%';
+POW       : '**';
 
 //OPERADORS BOOLEANS
 LE        : '<=';
@@ -152,6 +155,9 @@ ENDFUNC   : 'endfunc' ;
 READ      : 'read' ;
 WRITE     : 'write' ;
 RETURN    : 'return' ;
+MAP       : 'map';
+INTO      : 'into';
+USING     : 'using';
 
 BOOLVAL   : 'true' | 'false'; 
 

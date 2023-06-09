@@ -88,6 +88,9 @@ public:
   antlrcpp::Any visitLogic(AslParser::LogicContext *ctx);
   antlrcpp::Any visitParen(AslParser::ParenContext *ctx);
   antlrcpp::Any visitReturn(AslParser::ReturnContext *ctx);
+  antlrcpp::Any visitPower(AslParser::PowerContext *ctx);
+  antlrcpp::Any visitMapStmt(AslParser::MapStmtContext *ctx);
+  
 
 private:
 

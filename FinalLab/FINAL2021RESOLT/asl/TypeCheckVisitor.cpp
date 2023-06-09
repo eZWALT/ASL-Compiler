@@ -56,6 +56,32 @@ TypeCheckVisitor::TypeCheckVisitor(TypesMgr       & Types,
   Errors{Errors} {
 }
 
+antlrcpp::Any TypeCheckVisitor::visitMapStmt(AslParser::MapStmtContext *ctx){
+  DEBUG_ENTER();
+  visit(ctx->ident(0));
+  visit(ctx->ident(1));
+  visit(ctx->ident(2));
+
+  TypesMgr::TypeId typeA = getTypeDecor(ctx->ident(0));
+  TypesMgr::TypeId typeB = getTypeDecor(ctx->ident(1));
+  TypesMgr::TypeId typeF = getTypeDecor(ctx->ident(2));
+
+  if((not Types.isErrorTy(typeA) and not Types.isArrayTy(typeA))
+     or (not Types.isErrorTy(typeB) and not Types.isArrayTy(typeB))
+     or (Types.isArrayTy(typeA) and Types.isArrayTy(typeB) and Types.getArraySize(typeA) != Types.getArraySize(typeB))
+     or (not Types.isErrorTy(typeF) and not Types.isFunctionTy(typeF))
+     or (Types.isFunctionTy(typeF) and (not Types.equalTypes(Types.getArrayElemType(typeA), Types.getParameterType(typeF, 0)) or not Types.equalTypes(Types.getArrayElemType(typeB), Types.getFuncReturnType(typeF))))
+     ){
+    Errors.incompatibleMapOperands(ctx);
+  }
+
+
+
+  DEBUG_EXIT();
+  return 0;
+}
+
+
 // Accessor/Mutator to the attribute currFunctionType
 TypesMgr::TypeId TypeCheckVisitor::getCurrentFunctionTy() const {
   return currFunctionType;
@@ -65,8 +91,26 @@ void TypeCheckVisitor::setCurrentFunctionTy(TypesMgr::TypeId type) {
   currFunctionType = type;
 }
 
-// Methods to visit each kind of node:
-//
+antlrcpp::Any TypeCheckVisitor::visitPower(AslParser::PowerContext *ctx){
+  DEBUG_ENTER();
+  visit(ctx->expr(0));
+  visit(ctx->expr(1));
+
+  TypesMgr::TypeId baseType = getTypeDecor(ctx->expr(0));
+  TypesMgr::TypeId expType = getTypeDecor(ctx->expr(1));
+  TypesMgr::TypeId retType;
+
+  if((not Types.isErrorTy(baseType) and not Types.isNumericTy(baseType)) or (not Types.isErrorTy(expType) and not Types.isIntegerTy(expType))){
+    Errors.incompatibleOperator(ctx->op);
+  }
+  
+  retType = Types.createFloatTy();
+  putTypeDecor(ctx,retType);
+  putIsLValueDecor(ctx,false);
+  DEBUG_EXIT();
+  return 0;
+}
+
 antlrcpp::Any TypeCheckVisitor::visitProgram(AslParser::ProgramContext *ctx) {
   DEBUG_ENTER();
   SymTable::ScopeId sc = getScopeDecor(ctx);

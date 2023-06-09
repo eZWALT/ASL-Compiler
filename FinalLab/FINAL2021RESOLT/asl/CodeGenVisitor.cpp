@@ -605,6 +605,50 @@ antlrcpp::Any CodeGenVisitor::visitUnary(AslParser::UnaryContext *ctx){
   return codAts;
 }
 
+antlrcpp::Any CodeGenVisitor::visitPower(AslParser::PowerContext *ctx){
+  DEBUG_ENTER();
+
+  CodeAttribs     && codAt1 = visit(ctx->expr(0));
+  std::string         addr1 = codAt1.addr;
+  instructionList &   code1 = codAt1.code;
+
+  CodeAttribs     && codAt2 = visit(ctx->expr(1));
+  std::string         addr2 = codAt2.addr;
+  instructionList &   code2 = codAt2.code;
+  instructionList &&   code = code1 || code2;
+
+  TypesMgr::TypeId tbase = getTypeDecor(ctx->expr(0));
+
+  std::string expTmp = "%" + codeCounters.newTEMP();
+  std::string result = "%" + codeCounters.newTEMP();
+  std::string constZero="%"+ codeCounters.newTEMP();
+  std::string boolean = "%" + codeCounters.newTEMP();
+  std::string constOne ="%"+ codeCounters.newTEMP();
+
+
+  std::string potLabel = codeCounters.newLabelWHILE();
+  std::string START    = "StartExp_" + potLabel;
+  std::string END      = "EndExp_" + potLabel;
+
+  if (Types.isFloatTy(tbase)){
+    code = code || instruction::LOAD(expTmp, addr2) || instruction::FLOAD(result, "1.0") || 
+          instruction::ILOAD(constZero, "0") || instruction::ILOAD(constOne, "1") || instruction::LABEL(START)  || 
+          instruction::LT(boolean, constZero, expTmp) || instruction::FJUMP(boolean, END) || instruction::FMUL(result, result, addr1) || 
+          instruction::SUB(expTmp, expTmp, constOne) || instruction::UJUMP(START) || instruction::LABEL(END);
+  }
+  else {
+    code = code || instruction::LOAD(expTmp, addr2) || instruction::ILOAD(result, "1") || 
+      instruction::ILOAD(constZero, "0") || instruction::ILOAD(constOne, "1") || instruction::LABEL(START)  || 
+      instruction::LT(boolean, constZero, expTmp) || instruction::FJUMP(boolean, END) || instruction::MUL(result, result, addr1) || 
+      instruction::SUB(expTmp, expTmp, constOne) || instruction::UJUMP(START) || instruction::LABEL(END) || instruction::FLOAT(result, result);
+
+  }
+
+
+  CodeAttribs codAts(result, "" ,code);
+  return codAts;
+}
+
 antlrcpp::Any CodeGenVisitor::visitArithmetic(AslParser::ArithmeticContext *ctx) {
   DEBUG_ENTER();
   //std::cout << "Visiting arithmetic of " << ctx->getText() << std::endl;

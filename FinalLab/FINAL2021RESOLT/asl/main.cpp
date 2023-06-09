@@ -88,7 +88,7 @@ int main(int argc, const char* argv[]) {
   // check for lexical or syntactical errors
   if (lexer.getNumberOfSyntaxErrors() > 0 or
       parser.getNumberOfSyntaxErrors() > 0) {
-    std::cout << "Lexical and/or syntactical errors have been found." << std::endl;
+    //std::cout << "Lexical and/or syntactical errors have been found." << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -113,7 +113,7 @@ int main(int argc, const char* argv[]) {
   typecheck.visit(tree);
 
   if (errors.getNumberOfSemanticErrors() > 0) {
-    std::cout << "There are semantic errors: no code generated." << std::endl;
+    //std::cout << "There are semantic errors: no code generated." << std::endl;
     return EXIT_FAILURE;
   }
 
